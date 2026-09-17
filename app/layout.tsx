@@ -1,5 +1,6 @@
-
 import type { Metadata } from "next";
+import { ClerkProvider } from "@clerk/nextjs";
+
 import "./globals.css";
 
 import Navbar from "../Components/Navbar";
@@ -15,9 +16,7 @@ export const metadata: Metadata = {
 
   description:
     "Understand Indian government schemes, benefits, eligibility, documents and application information in simple language.",
-  icons: {
-  icon: "/icon.svg",
-  },
+
   keywords: [
     "government schemes India",
     "government schemes",
@@ -65,6 +64,10 @@ export const metadata: Metadata = {
     images: ["/og-image.png"],
   },
 
+  icons: {
+    icon: "/icon.svg",
+  },
+
   alternates: {
     canonical: "https://schemesamjho.in",
   },
@@ -76,14 +79,23 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
-      <body className="min-h-screen bg-gray-50">
-        <Navbar />
+    <ClerkProvider>
+      <html lang="en">
+        <body className="min-h-screen bg-gray-50">
+          <a
+            href="#main-content"
+            className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[9999] focus:rounded-lg focus:bg-white focus:px-4 focus:py-3 focus:text-sm focus:font-bold focus:text-gray-950 focus:shadow-xl"
+          >
+            Skip to main content
+          </a>
 
-        <main>{children}</main>
+          <Navbar />
 
-        <Footer />
-      </body>
-    </html>
+          <main id="main-content">{children}</main>
+
+          <Footer />
+        </body>
+      </html>
+    </ClerkProvider>
   );
 }

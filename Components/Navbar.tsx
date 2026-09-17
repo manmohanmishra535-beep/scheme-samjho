@@ -1,371 +1,466 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
+import {
+  Menu,
+  X,
+  ChevronDown,
+} from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import {
+  UserButton,
+  Show,
+  SignInButton,
+} from "@clerk/nextjs";
 
-const STORAGE_KEY = "schemesamjho-favorites";
+import { useSavedSchemes } from "../lib/useSavedSchemes";
 
 const mainLinks = [
   {
-    label: "Home",
     href: "/",
+    label: "Home",
   },
   {
-    label: "Schemes",
     href: "/schemes",
+    label: "Schemes",
   },
   {
-    label: "Check Eligibility",
     href: "/eligibility",
+    label: "Check Eligibility",
   },
   {
-    label: "Saved",
     href: "/saved",
+    label: "Saved",
   },
 ];
 
 const moreLinks = [
   {
-    label: "Compare Schemes",
     href: "/compare",
-    description: "Compare up to 3 schemes",
+    label: "Compare",
   },
   {
-    label: "Explainers",
     href: "/explainers",
-    description: "Simple scheme guides",
+    label: "Explainers",
   },
   {
-    label: "About Us",
     href: "/about",
-    description: "About SchemeSamjho",
+    label: "About",
   },
   {
-    label: "Contact Us",
     href: "/contact",
-    description: "Get in touch",
+    label: "Contact",
   },
 ];
 
-function getSavedCount() {
-  try {
-    const saved = localStorage.getItem(STORAGE_KEY);
+export default function Navbar() {
+  const pathname = usePathname();
 
-    if (!saved) {
-      return 0;
+  const [mobileOpen, setMobileOpen] =
+    useState(false);
+
+  const [moreOpen, setMoreOpen] =
+    useState(false);
+
+  const moreRef =
+    useRef<HTMLDivElement>(null);
+
+  const {
+    savedCount,
+    loading: savedLoading,
+  } = useSavedSchemes();
+
+  /*
+   * Close More dropdown when clicking outside.
+   */
+  useEffect(() => {
+    function handleClickOutside(
+      event: MouseEvent
+    ) {
+      if (
+        moreRef.current &&
+        !moreRef.current.contains(
+          event.target as Node
+        )
+      ) {
+        setMoreOpen(false);
+      }
     }
 
-    const parsed = JSON.parse(saved);
-
-    return Array.isArray(parsed) ? parsed.length : 0;
-  } catch {
-    return 0;
-  }
-}
-
-export default function Navbar() {
-  const pathname = usePathname() ?? "/";
-
-  const [savedCount, setSavedCount] = useState(0);
-  const [mobileOpen, setMobileOpen] = useState(false);
-  const [moreOpen, setMoreOpen] = useState(false);
-
-  useEffect(() => {
-    setSavedCount(getSavedCount());
-
-    const updateSavedCount = () => {
-      setSavedCount(getSavedCount());
-    };
-
-    const handleStorage = (event: StorageEvent) => {
-      if (event.key === STORAGE_KEY) {
-        updateSavedCount();
-      }
-    };
-
-    window.addEventListener("favoritesChanged", updateSavedCount);
-    window.addEventListener("storage", handleStorage);
+    document.addEventListener(
+      "mousedown",
+      handleClickOutside
+    );
 
     return () => {
-      window.removeEventListener(
-        "favoritesChanged",
-        updateSavedCount
+      document.removeEventListener(
+        "mousedown",
+        handleClickOutside
       );
-
-      window.removeEventListener("storage", handleStorage);
     };
   }, []);
 
+  /*
+   * Close mobile menu when route changes.
+   */
   useEffect(() => {
     setMobileOpen(false);
     setMoreOpen(false);
   }, [pathname]);
 
-  function isActive(href: string) {
+  const isActive = (href: string) => {
     if (href === "/") {
       return pathname === "/";
     }
 
-    return pathname === href || pathname.startsWith(`${href}/`);
-  }
+    return (
+      pathname === href ||
+      pathname.startsWith(`${href}/`)
+    );
+  };
 
-  const moreIsActive = moreLinks.some((link) =>
-    isActive(link.href)
+  const moreActive = moreLinks.some(
+    (link) => isActive(link.href)
   );
 
   return (
-    <header className="sticky top-0 z-50 border-b border-slate-200 bg-white/95 backdrop-blur">
-      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <div className="flex h-16 items-center justify-between gap-4">
-          {/* Logo */}
+    <header className="sticky top-0 z-50 border-b border-gray-200 bg-white/95 backdrop-blur">
+      <nav className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        <div className="flex h-20 items-center justify-between">
+
+          {/* =================================================
+              LOGO
+          ================================================== */}
+
           <Link
             href="/"
-            className="flex shrink-0 items-center gap-2"
-            aria-label="SchemeSamjho home"
+            className="flex shrink-0 items-center gap-3"
           >
-            <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-blue-600 text-lg text-white shadow-sm">
-              🇮🇳
-            </span>
+            <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-gray-950 text-lg font-black text-white">
+              S
+            </div>
 
-            <div className="leading-tight">
-              <p className="text-base font-bold tracking-tight text-slate-900">
+            <div className="hidden sm:block">
+              <p className="text-lg font-black tracking-tight text-gray-950">
                 SchemeSamjho
               </p>
 
-              <p className="hidden text-[10px] font-medium text-slate-400 sm:block">
-                Government schemes, simplified
+              <p className="text-xs font-medium text-gray-500">
+                Government schemes, simply explained
               </p>
             </div>
           </Link>
 
-          {/* Desktop Navigation */}
-          <nav className="hidden items-center gap-1 md:flex">
+          {/* =================================================
+              DESKTOP NAVIGATION
+          ================================================== */}
+
+          <div className="hidden items-center gap-1 lg:flex">
+
             {mainLinks.map((link) => {
-              const active = isActive(link.href);
+              const active =
+                isActive(link.href);
 
               return (
                 <Link
                   key={link.href}
                   href={link.href}
-                  className={`rounded-lg px-3 py-2 text-sm font-medium transition ${
+                  className={`relative rounded-xl px-4 py-2.5 text-sm font-semibold transition ${
                     active
-                      ? "bg-blue-50 text-blue-700"
-                      : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"
+                      ? "bg-gray-50 text-gray-950"
+                      : "text-gray-600 hover:bg-gray-50 hover:text-gray-950"
                   }`}
                 >
                   <span className="flex items-center gap-1.5">
                     {link.label}
 
-                    {link.href === "/saved" && savedCount > 0 && (
-                      <span
-                        className={`flex h-5 min-w-5 items-center justify-center rounded-full px-1.5 text-[10px] font-bold ${
-                          active
-                            ? "bg-blue-600 text-white"
-                            : "bg-slate-200 text-slate-700"
-                        }`}
-                      >
-                        {savedCount > 99 ? "99+" : savedCount}
-                      </span>
-                    )}
+                    {/* SAVED COUNT */}
+
+                    {link.href ===
+                      "/saved" &&
+                      !savedLoading && (
+                        <span
+                          className={`inline-flex min-w-5 items-center justify-center rounded-full px-1.5 py-0.5 text-[10px] font-black ${
+                            active
+                              ? "bg-blue-100 text-blue-700"
+                              : "bg-blue-50 text-blue-600"
+                          }`}
+                        >
+                          {savedCount}
+                        </span>
+                      )}
                   </span>
                 </Link>
               );
             })}
 
-            {/* More */}
+            {/* =================================================
+                MORE DROPDOWN
+            ================================================== */}
+
             <div
+              ref={moreRef}
               className="relative"
-              onMouseEnter={() => setMoreOpen(true)}
-              onMouseLeave={() => setMoreOpen(false)}
             >
               <button
                 type="button"
-                onClick={() => setMoreOpen((value) => !value)}
+                onClick={() =>
+                  setMoreOpen(
+                    (current) => !current
+                  )
+                }
                 aria-expanded={moreOpen}
-                className={`flex items-center gap-1 rounded-lg px-3 py-2 text-sm font-medium transition ${
-                  moreIsActive
-                    ? "bg-blue-50 text-blue-700"
-                    : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"
+                className={`flex items-center gap-1 rounded-xl px-4 py-2.5 text-sm font-semibold transition ${
+                  moreActive
+                    ? "bg-gray-50 text-gray-950"
+                    : "text-gray-600 hover:bg-gray-50 hover:text-gray-950"
                 }`}
               >
                 More
 
-                <svg
-                  width="14"
-                  height="14"
-                  viewBox="0 0 20 20"
-                  fill="currentColor"
-                  aria-hidden="true"
+                <ChevronDown
+                  size={15}
                   className={`transition-transform ${
-                    moreOpen ? "rotate-180" : ""
+                    moreOpen
+                      ? "rotate-180"
+                      : ""
                   }`}
-                >
-                  <path
-                    fillRule="evenodd"
-                    d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25-4.51a.75.75 0 01-1.08 1.04l-4.25 4.51a.75.75 0 01.02-1.06z"
-                    clipRule="evenodd"
-                  />
-                </svg>
+                />
               </button>
 
               {moreOpen && (
-                <div className="absolute right-0 top-full w-72 pt-2">
-                  <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white p-2 shadow-xl">
-                    {moreLinks.map((link) => {
-                      const active = isActive(link.href);
+                <div className="absolute right-0 top-full mt-2 w-52 overflow-hidden rounded-2xl border border-gray-200 bg-white p-2 shadow-xl shadow-gray-900/10">
+
+                  {moreLinks.map(
+                    (link) => {
+                      const active =
+                        isActive(
+                          link.href
+                        );
 
                       return (
                         <Link
-                          key={link.href}
-                          href={link.href}
-                          className={`block rounded-xl px-4 py-3 transition ${
+                          key={
+                            link.href
+                          }
+                          href={
+                            link.href
+                          }
+                          className={`block rounded-xl px-4 py-3 text-sm font-semibold transition ${
                             active
-                              ? "bg-blue-50"
-                              : "hover:bg-slate-50"
+                              ? "bg-gray-100 text-gray-950"
+                              : "text-gray-600 hover:bg-gray-50 hover:text-gray-950"
                           }`}
                         >
-                          <p
-                            className={`text-sm font-semibold ${
-                              active
-                                ? "text-blue-700"
-                                : "text-slate-800"
-                            }`}
-                          >
-                            {link.label}
-                          </p>
-
-                          <p className="mt-0.5 text-xs text-slate-500">
-                            {link.description}
-                          </p>
+                          {
+                            link.label
+                          }
                         </Link>
                       );
-                    })}
-                  </div>
+                    }
+                  )}
+
                 </div>
               )}
             </div>
-          </nav>
+          </div>
 
-          {/* Mobile button */}
+          {/* =================================================
+              DESKTOP ACCOUNT AREA
+          ================================================== */}
+
+          <div className="hidden items-center gap-3 lg:flex">
+
+            <Show when="signed-in">
+              <Link
+                href="/dashboard"
+                className="rounded-xl px-4 py-2.5 text-sm font-semibold text-gray-600 transition hover:bg-gray-50 hover:text-gray-950"
+              >
+                Dashboard
+              </Link>
+
+              <Link
+                href="/account"
+                className="rounded-xl px-4 py-2.5 text-sm font-semibold text-gray-600 transition hover:bg-gray-50 hover:text-gray-950"
+              >
+                Account
+              </Link>
+
+              <UserButton
+                appearance={{
+                  elements: {
+                    avatarBox:
+                      "h-10 w-10",
+                  },
+                }}
+              />
+            </Show>
+
+            <Show when="signed-out">
+              <SignInButton mode="modal">
+                <button
+                  type="button"
+                  className="rounded-xl border border-gray-200 bg-white px-5 py-2.5 text-sm font-bold text-gray-900 transition hover:bg-gray-50"
+                >
+                  Sign In
+                </button>
+              </SignInButton>
+            </Show>
+
+          </div>
+
+          {/* =================================================
+              MOBILE MENU BUTTON
+          ================================================== */}
+
           <button
             type="button"
-            onClick={() => setMobileOpen((value) => !value)}
+            onClick={() =>
+              setMobileOpen(
+                (current) => !current
+              )
+            }
             aria-label={
               mobileOpen
-                ? "Close navigation"
-                : "Open navigation"
+                ? "Close navigation menu"
+                : "Open navigation menu"
             }
             aria-expanded={mobileOpen}
-            className="rounded-lg p-2 text-slate-700 hover:bg-slate-100 md:hidden"
+            className="flex h-10 w-10 items-center justify-center rounded-xl border border-gray-200 text-gray-700 transition hover:bg-gray-50 lg:hidden"
           >
             {mobileOpen ? (
-              <svg
-                width="24"
-                height="24"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-              >
-                <path d="M6 6l12 12" />
-                <path d="M18 6L6 18" />
-              </svg>
+              <X size={20} />
             ) : (
-              <svg
-                width="24"
-                height="24"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-              >
-                <path d="M4 6h16" />
-                <path d="M4 12h16" />
-                <path d="M4 18h16" />
-              </svg>
+              <Menu size={20} />
             )}
           </button>
+
         </div>
 
-        {/* Mobile Navigation */}
+        {/* =================================================
+            MOBILE NAVIGATION
+        ================================================== */}
+
         {mobileOpen && (
-          <div className="border-t border-slate-100 py-3 md:hidden">
-            <nav className="space-y-1">
+          <div className="border-t border-gray-100 py-4 lg:hidden">
+
+            <div className="space-y-1">
+
               {mainLinks.map((link) => {
-                const active = isActive(link.href);
+                const active =
+                  isActive(link.href);
 
                 return (
                   <Link
                     key={link.href}
                     href={link.href}
-                    onClick={() => setMobileOpen(false)}
-                    className={`flex items-center justify-between rounded-xl px-4 py-3 text-sm font-medium transition ${
+                    className={`flex items-center justify-between rounded-xl px-4 py-3 text-sm font-semibold transition ${
                       active
-                        ? "bg-blue-50 text-blue-700"
-                        : "text-slate-700 hover:bg-slate-50"
+                        ? "bg-gray-100 text-gray-950"
+                        : "text-gray-600 hover:bg-gray-50 hover:text-gray-950"
                     }`}
                   >
-                    <span>{link.label}</span>
+                    <span>
+                      {link.label}
+                    </span>
 
-                    {link.href === "/saved" &&
-                      savedCount > 0 && (
-                        <span
-                          className={`flex h-6 min-w-6 items-center justify-center rounded-full px-2 text-xs font-bold ${
-                            active
-                              ? "bg-blue-600 text-white"
-                              : "bg-slate-200 text-slate-700"
-                          }`}
-                        >
-                          {savedCount > 99 ? "99+" : savedCount}
+                    {link.href ===
+                      "/saved" &&
+                      !savedLoading && (
+                        <span className="rounded-full bg-blue-50 px-2 py-1 text-[10px] font-black text-blue-600">
+                          {savedCount}
                         </span>
                       )}
                   </Link>
                 );
               })}
 
-              <div className="my-2 border-t border-slate-100" />
+              {/* MOBILE MORE LINKS */}
 
-              <p className="px-4 pb-2 pt-1 text-xs font-semibold uppercase tracking-wide text-slate-400">
-                More
-              </p>
+              <div className="mt-2 border-t border-gray-100 pt-2">
 
-              {moreLinks.map((link) => {
-                const active = isActive(link.href);
+                <p className="px-4 py-2 text-xs font-bold uppercase tracking-wider text-gray-400">
+                  More
+                </p>
 
-                return (
+                {moreLinks.map(
+                  (link) => {
+                    const active =
+                      isActive(
+                        link.href
+                      );
+
+                    return (
+                      <Link
+                        key={
+                          link.href
+                        }
+                        href={
+                          link.href
+                        }
+                        className={`block rounded-xl px-4 py-3 text-sm font-semibold transition ${
+                          active
+                            ? "bg-gray-100 text-gray-950"
+                            : "text-gray-600 hover:bg-gray-50 hover:text-gray-950"
+                        }`}
+                      >
+                        {
+                          link.label
+                        }
+                      </Link>
+                    );
+                  }
+                )}
+
+              </div>
+
+              {/* MOBILE ACCOUNT */}
+
+              <div className="mt-2 border-t border-gray-100 pt-2">
+
+                <Show when="signed-in">
+
                   <Link
-                    key={link.href}
-                    href={link.href}
-                    onClick={() => setMobileOpen(false)}
-                    className={`block rounded-xl px-4 py-3 transition ${
-                      active
-                        ? "bg-blue-50"
-                        : "hover:bg-slate-50"
-                    }`}
+                    href="/dashboard"
+                    className="block rounded-xl px-4 py-3 text-sm font-semibold text-gray-600 hover:bg-gray-50 hover:text-gray-950"
                   >
-                    <p
-                      className={`text-sm font-semibold ${
-                        active
-                          ? "text-blue-700"
-                          : "text-slate-700"
-                      }`}
-                    >
-                      {link.label}
-                    </p>
-
-                    <p className="mt-0.5 text-xs text-slate-500">
-                      {link.description}
-                    </p>
+                    Dashboard
                   </Link>
-                );
-              })}
-            </nav>
+
+                  <Link
+                    href="/account"
+                    className="block rounded-xl px-4 py-3 text-sm font-semibold text-gray-600 hover:bg-gray-50 hover:text-gray-950"
+                  >
+                    Account
+                  </Link>
+
+                  <div className="px-4 py-3">
+                    <UserButton />
+                  </div>
+
+                </Show>
+
+                <Show when="signed-out">
+
+                  <SignInButton mode="modal">
+                    <button
+                      type="button"
+                      className="w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-left text-sm font-bold text-gray-900 transition hover:bg-gray-50"
+                    >
+                      Sign In
+                    </button>
+                  </SignInButton>
+
+                </Show>
+
+              </div>
+
+            </div>
           </div>
         )}
-      </div>
+
+      </nav>
     </header>
   );
 }

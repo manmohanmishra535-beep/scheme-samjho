@@ -2,53 +2,53 @@
 
 import Link from "next/link";
 import { useMemo, useState } from "react";
+import {
+  ArrowRight,
+  CheckCircle2,
+  ExternalLink,
+  Info,
+  Search,
+  ShieldCheck,
+  XCircle,
+} from "lucide-react";
 
-import { schemes, Scheme } from "../../data/schemes";
+import { schemes, type Scheme } from "../../data/schemes";
+import FavoriteButton from "../../Components/FavoriteButton";
 
-type Occupation =
-  | "farmer"
-  | "business"
-  | "employee"
-  | "student"
-  | "other";
+type ConditionStatus = "match" | "no-match" | "verify";
+
+type Condition = {
+  name: string;
+  status: ConditionStatus;
+  message: string;
+};
+
+type ResultStatus = "basic-match" | "verify" | "limited";
 
 type Result = {
   scheme: Scheme;
   score: number;
+  matchedConditions: number;
+  verificationCount: number;
+  failedConditions: number;
+  totalConditions: number;
   reasons: string[];
   warnings: string[];
+  conditions: Condition[];
+  status: ResultStatus;
 };
 
-const occupations: {
-  value: Occupation;
-  label: string;
-  description: string;
-}[] = [
-  {
-    value: "farmer",
-    label: "Farmer",
-    description: "I work in farming or agriculture",
-  },
-  {
-    value: "business",
-    label: "Business / Self-employed",
-    description: "I run a business or work for myself",
-  },
-  {
-    value: "employee",
-    label: "Employee",
-    description: "I work for an organisation or company",
-  },
-  {
-    value: "student",
-    label: "Student",
-    description: "I am currently studying",
-  },
-  {
-    value: "other",
-    label: "Other",
-    description: "My occupation does not fit these categories",
-  },
+const occupations = [
+  "Farmer",
+  "Student",
+  "Woman",
+  "Artisan",
+  "Business Owner",
+  "Worker",
+  "Self Employed",
+  "Senior Citizen",
+  "Job Seeker",
+  "Other",
 ];
 
 const states = [
@@ -80,984 +80,1440 @@ const states = [
   "Uttar Pradesh",
   "Uttarakhand",
   "West Bengal",
-  "Andaman and Nicobar Islands",
-  "Chandigarh",
-  "Dadra and Nagar Haveli and Daman and Diu",
   "Delhi",
   "Jammu and Kashmir",
   "Ladakh",
-  "Lakshadweep",
   "Puducherry",
+  "Chandigarh",
 ];
 
-function formatIncome(amount: number) {
-  return `₹${amount.toLocaleString("en-IN")}`;
-}
-
-function formatAge(minAge?: number, maxAge?: number) {
-  if (minAge !== undefined && maxAge !== undefined) {
-    return `${minAge}–${maxAge} years`;
+function getConditionIcon(status: ConditionStatus) {
+  if (status === "match") {
+    return (
+      <CheckCircle2
+        size={18}
+        className="text-emerald-600"
+      />
+    );
   }
 
-  if (minAge !== undefined) {
-    return `${minAge}+ years`;
+  if (status === "no-match") {
+    return (
+      <XCircle
+        size={18}
+        className="text-red-600"
+      />
+    );
   }
 
-  if (maxAge !== undefined) {
-    return `Up to ${maxAge} years`;
-  }
-
-  return "Depends on scheme rules";
-}
-
-function getMatchLabel(score: number) {
-  if (score >= 70) {
-    return {
-      label: "Strong match",
-      className: "bg-green-50 text-green-700",
-    };
-  }
-
-  if (score >= 40) {
-    return {
-      label: "Possible match",
-      className: "bg-amber-50 text-amber-700",
-    };
-  }
-
-  return {
-    label: "Low match",
-    className: "bg-slate-100 text-slate-600",
-  };
-}
-
-function getOccupationLabel(value: Occupation) {
   return (
-    occupations.find((item) => item.value === value)?.label ?? value
+    <Info
+      size={18}
+      className="text-amber-600"
+    />
   );
 }
 
-function calculateResult(
+function getConditionStyles(status: ConditionStatus) {
+  if (status === "match") {
+    return "border-emerald-100 bg-emerald-50";
+  }
+
+  if (status === "no-match") {
+    return "border-red-100 bg-red-50";
+  }
+
+  return "border-amber-100 bg-amber-50";
+}
+
+function getStatusLabel(status: ResultStatus) {
+  if (status === "basic-match") {
+    return "Basic criteria matched";
+  }
+
+  if (status === "verify") {
+    return "Needs verification";
+  }
+
+  return "Some criteria not matched";
+}
+
+function getStatusStyles(status: ResultStatus) {
+  if (status === "basic-match") {
+    return "border-emerald-200 bg-emerald-50 text-emerald-700";
+  }
+
+  if (status === "verify") {
+    return "border-amber-200 bg-amber-50 text-amber-700";
+  }
+
+  return "border-red-200 bg-red-50 text-red-700";
+}
+
+/*
+ * Compare the user's selected occupation
+ * with the occupations stored in the scheme data.
+ */
+function occupationMatchesScheme(
   scheme: Scheme,
-  age: number,
-  occupation: Occupation,
-  income: number,
+  occupation: string
+) {
+  if (!occupation) {
+    return false;
+  }
+
+  const selected = occupation
+    .toLowerCase()
+    .trim();
+
+  return scheme.occupations.some((item) => {
+    const schemeOccupation = item
+      .toLowerCase()
+      .trim();
+
+    if (schemeOccupation === selected) {
+      return true;
+    }
+
+    if (
+      selected === "business owner" &&
+      (schemeOccupation.includes("business") ||
+        schemeOccupation.includes("entrepreneur"))
+    ) {
+      return true;
+    }
+
+    if (
+      selected === "self employed" &&
+      (schemeOccupation.includes("self") ||
+        schemeOccupation.includes("business"))
+    ) {
+      return true;
+    }
+
+    if (
+      selected === "worker" &&
+      (schemeOccupation.includes("worker") ||
+        schemeOccupation.includes("labour") ||
+        schemeOccupation.includes("labor"))
+    ) {
+      return true;
+    }
+
+    if (
+      selected === "woman" &&
+      (schemeOccupation.includes("woman") ||
+        schemeOccupation.includes("women") ||
+        schemeOccupation.includes("female"))
+    ) {
+      return true;
+    }
+
+    if (
+      selected === "farmer" &&
+      schemeOccupation.includes("farmer")
+    ) {
+      return true;
+    }
+
+    if (
+      selected === "student" &&
+      schemeOccupation.includes("student")
+    ) {
+      return true;
+    }
+
+    if (
+      selected === "artisan" &&
+      schemeOccupation.includes("artisan")
+    ) {
+      return true;
+    }
+
+    return false;
+  });
+}
+
+function checkEligibility(
+  scheme: Scheme,
+  age: number | null,
+  occupation: string,
+  income: number | null,
   state: string
 ): Result {
-  let score = 0;
-
+  const conditions: Condition[] = [];
   const reasons: string[] = [];
   const warnings: string[] = [];
 
   /*
-   * ---------------------------------------------------------
    * OCCUPATION
-   * ---------------------------------------------------------
    */
-  if (scheme.occupations.includes(occupation)) {
-    score += 35;
+  if (!occupation) {
+    conditions.push({
+      name: "Occupation",
+      status: "verify",
+      message:
+        "Select your occupation to screen this criterion.",
+    });
 
-    reasons.push(
-      `Your occupation (${getOccupationLabel(
-        occupation
-      )}) matches the occupation category used for this scheme.`
+    warnings.push(
+      "Occupation information is required for verification."
+    );
+  } else if (scheme.occupations.length === 0) {
+    conditions.push({
+      name: "Occupation",
+      status: "verify",
+      message:
+        "Occupation-specific information is not available in the current scheme data.",
+    });
+
+    warnings.push(
+      "Verify occupation requirements from the official scheme source."
     );
   } else {
-    warnings.push(
-      `Your selected occupation (${getOccupationLabel(
-        occupation
-      )}) is not one of the occupation categories listed for this scheme.`
+    const matches = occupationMatchesScheme(
+      scheme,
+      occupation
     );
-  }
 
-  /*
-   * ---------------------------------------------------------
-   * AGE
-   * ---------------------------------------------------------
-   */
-  const ageHasMinimum =
-    scheme.minAge !== undefined && age < scheme.minAge;
+    if (matches) {
+      conditions.push({
+        name: "Occupation",
+        status: "match",
+        message: `Your occupation (${occupation}) appears in the scheme's eligible occupation data.`,
+      });
 
-  const ageHasMaximum =
-    scheme.maxAge !== undefined && age > scheme.maxAge;
-
-  if (!ageHasMinimum && !ageHasMaximum) {
-    score += 25;
-
-    if (
-      scheme.minAge !== undefined ||
-      scheme.maxAge !== undefined
-    ) {
-      reasons.push(
-        `Your age falls within the basic age range listed for this scheme.`
-      );
+      reasons.push(`Occupation: ${occupation}`);
     } else {
-      reasons.push(
-        "Your age does not conflict with a simple age restriction in our scheme data."
-      );
-    }
-  } else {
-    warnings.push(
-      `Your age (${age}) does not fall within the basic age range listed for this scheme.`
-    );
-  }
+      conditions.push({
+        name: "Occupation",
+        status: "no-match",
+        message: `Your selected occupation (${occupation}) was not found in the scheme's occupation data.`,
+      });
 
-  /*
-   * ---------------------------------------------------------
-   * INCOME
-   * ---------------------------------------------------------
-   */
-  if (scheme.maxIncome !== undefined) {
-    if (income <= scheme.maxIncome) {
-      score += 25;
-
-      reasons.push(
-        `Your annual household income of ${formatIncome(
-          income
-        )} is within the simple income limit used by our screening data.`
-      );
-    } else {
       warnings.push(
-        `Your annual household income of ${formatIncome(
-          income
-        )} is above the simple income limit of ${formatIncome(
-          scheme.maxIncome
-        )} used by our screening data.`
+        `Occupation "${occupation}" was not found in the available scheme data.`
+      );
+    }
+  }
+
+  /*
+   * AGE
+   */
+  if (age === null) {
+    conditions.push({
+      name: "Age",
+      status: "verify",
+      message:
+        "Enter your age to screen this criterion.",
+    });
+
+    warnings.push("Age has not been provided.");
+  } else {
+    const belowMinAge =
+      typeof scheme.minAge === "number" &&
+      age < scheme.minAge;
+
+    const aboveMaxAge =
+      typeof scheme.maxAge === "number" &&
+      age > scheme.maxAge;
+
+    if (belowMinAge) {
+      const message = `This scheme has a minimum age requirement of ${scheme.minAge}.`;
+
+      conditions.push({
+        name: "Age",
+        status: "no-match",
+        message,
+      });
+
+      warnings.push(message);
+    } else if (aboveMaxAge) {
+      const message = `This scheme has a maximum age requirement of ${scheme.maxAge}.`;
+
+      conditions.push({
+        name: "Age",
+        status: "no-match",
+        message,
+      });
+
+      warnings.push(message);
+    } else if (
+      typeof scheme.minAge === "number" ||
+      typeof scheme.maxAge === "number"
+    ) {
+      let message =
+        "Your age meets the available age criteria.";
+
+      if (
+        typeof scheme.minAge === "number" &&
+        typeof scheme.maxAge === "number"
+      ) {
+        message = `Your age is within the ${scheme.minAge}–${scheme.maxAge} age range.`;
+      } else if (
+        typeof scheme.minAge === "number"
+      ) {
+        message = `Your age meets the minimum age requirement of ${scheme.minAge}.`;
+      } else if (
+        typeof scheme.maxAge === "number"
+      ) {
+        message = `Your age is below the maximum age requirement of ${scheme.maxAge}.`;
+      }
+
+      conditions.push({
+        name: "Age",
+        status: "match",
+        message,
+      });
+
+      reasons.push(`Age: ${age}`);
+    } else {
+      conditions.push({
+        name: "Age",
+        status: "verify",
+        message:
+          "No specific age range is available in the current SchemeSamjho data.",
+      });
+
+      warnings.push(
+        "Verify age requirements from the official scheme source."
+      );
+    }
+  }
+
+  /*
+   * INCOME
+   */
+  if (income === null) {
+    conditions.push({
+      name: "Annual household income",
+      status: "verify",
+      message:
+        "Enter your annual household income to screen this criterion.",
+    });
+
+    warnings.push("Income has not been provided.");
+  } else if (
+    typeof scheme.maxIncome === "number"
+  ) {
+    if (income <= scheme.maxIncome) {
+      const message = `Your income is within the available annual threshold of ₹${scheme.maxIncome.toLocaleString(
+        "en-IN"
+      )}.`;
+
+      conditions.push({
+        name: "Annual household income",
+        status: "match",
+        message,
+      });
+
+      reasons.push(
+        `Annual household income: ₹${income.toLocaleString(
+          "en-IN"
+        )}`
+      );
+    } else {
+      const message = `Your income is above the available annual threshold of ₹${scheme.maxIncome.toLocaleString(
+        "en-IN"
+      )}.`;
+
+      conditions.push({
+        name: "Annual household income",
+        status: "no-match",
+        message,
+      });
+
+      warnings.push(message);
+    }
+  } else {
+    conditions.push({
+      name: "Annual household income",
+      status: "verify",
+      message:
+        "No usable annual income threshold is available in the current scheme data.",
+    });
+
+    warnings.push(
+      "Verify income-related eligibility from the official scheme source."
+    );
+  }
+
+  /*
+   * STATE
+   */
+  if (!state) {
+    conditions.push({
+      name: "State",
+      status: "verify",
+      message:
+        "Select your state or UT to screen this criterion.",
+    });
+
+    warnings.push(
+      "State has not been provided."
+    );
+  } else if (
+    scheme.states &&
+    scheme.states.length > 0
+  ) {
+    const stateMatches = scheme.states.some(
+      (schemeState) =>
+        schemeState.toLowerCase().trim() ===
+        state.toLowerCase().trim()
+    );
+
+    if (stateMatches) {
+      conditions.push({
+        name: "State",
+        status: "match",
+        message: `Your state (${state}) is included in the scheme's available state data.`,
+      });
+
+      reasons.push(`State: ${state}`);
+    } else {
+      conditions.push({
+        name: "State",
+        status: "no-match",
+        message: `Your state (${state}) is not included in the available state data for this scheme.`,
+      });
+
+      warnings.push(
+        `State "${state}" was not found in the available scheme state data.`
       );
     }
   } else {
+    conditions.push({
+      name: "State",
+      status: "verify",
+      message:
+        "This scheme does not have specific state information in the current SchemeSamjho data.",
+    });
+
     warnings.push(
-      "This scheme does not have a simple income limit in our screening data, so income requires verification against the official rules."
+      "Check whether any state-specific conditions apply on the official source."
     );
   }
 
+  const matchedConditions =
+    conditions.filter(
+      (condition) =>
+        condition.status === "match"
+    ).length;
+
+  const failedConditions =
+    conditions.filter(
+      (condition) =>
+        condition.status === "no-match"
+    ).length;
+
+  const verificationCount =
+    conditions.filter(
+      (condition) =>
+        condition.status === "verify"
+    ).length;
+
+  const totalConditions =
+    conditions.length;
+
   /*
-   * ---------------------------------------------------------
-   * STATE
-   * ---------------------------------------------------------
+   * Internal screening score.
+   *
+   * This is NOT an official government
+   * eligibility score.
    */
-  if (!scheme.states || scheme.states.length === 0) {
-    score += 15;
+  const score =
+    matchedConditions * 25 -
+    failedConditions * 20;
 
-    reasons.push(
-      "No state restriction is listed in our screening data."
-    );
-  } else if (scheme.states.includes(state)) {
-    score += 15;
+  let status: ResultStatus;
 
-    reasons.push(
-      `Your selected state (${state}) is included in the scheme data.`
-    );
+  if (
+    matchedConditions >= 3 &&
+    failedConditions === 0
+  ) {
+    status = "basic-match";
+  } else if (
+    matchedConditions >= 2 &&
+    failedConditions === 0
+  ) {
+    status = "verify";
   } else {
-    warnings.push(
-      `Your selected state (${state}) is not included in the scheme's listed state coverage.`
-    );
+    status = "limited";
   }
-
-  /*
-   * ---------------------------------------------------------
-   * CAP
-   * ---------------------------------------------------------
-   */
-  score = Math.min(score, 100);
-
-  /*
-   * ---------------------------------------------------------
-   * GENERAL VERIFICATION WARNING
-   * ---------------------------------------------------------
-   */
-  warnings.push(
-    "Final eligibility depends on the official scheme rules and verification process."
-  );
 
   return {
     scheme,
     score,
+    matchedConditions,
+    verificationCount,
+    failedConditions,
+    totalConditions,
     reasons,
     warnings,
+    conditions,
+    status,
   };
 }
 
 export default function EligibilityPage() {
-  const [step, setStep] = useState(1);
-
   const [age, setAge] = useState("");
   const [occupation, setOccupation] =
-    useState<Occupation | "">("");
+    useState("");
   const [income, setIncome] = useState("");
   const [state, setState] = useState("");
 
-  const [showLowMatches, setShowLowMatches] = useState(false);
+  const [hasChecked, setHasChecked] =
+    useState(false);
 
-  const isComplete =
-    age !== "" &&
-    occupation !== "" &&
-    income !== "" &&
-    state !== "";
-
-  const numericAge = Number(age);
-  const numericIncome = Number(income);
+  const [showAllResults, setShowAllResults] =
+    useState(false);
 
   const results = useMemo(() => {
-    if (!isComplete) {
+    if (!hasChecked) {
       return [];
     }
 
+    const parsedAge =
+      age.trim() === ""
+        ? null
+        : Number.parseInt(age, 10);
+
+    const parsedIncome =
+      income.trim() === ""
+        ? null
+        : Number.parseInt(income, 10);
+
+    const safeAge =
+      parsedAge !== null &&
+      Number.isFinite(parsedAge)
+        ? parsedAge
+        : null;
+
+    const safeIncome =
+      parsedIncome !== null &&
+      Number.isFinite(parsedIncome)
+        ? parsedIncome
+        : null;
+
     return schemes
       .map((scheme) =>
-        calculateResult(
+        checkEligibility(
           scheme,
-          numericAge,
-          occupation as Occupation,
-          numericIncome,
+          safeAge,
+          occupation,
+          safeIncome,
           state
         )
       )
-      .sort((a, b) => b.score - a.score);
+      .sort((a, b) => {
+        if (
+          b.matchedConditions !==
+          a.matchedConditions
+        ) {
+          return (
+            b.matchedConditions -
+            a.matchedConditions
+          );
+        }
+
+        if (
+          a.failedConditions !==
+          b.failedConditions
+        ) {
+          return (
+            a.failedConditions -
+            b.failedConditions
+          );
+        }
+
+        return b.score - a.score;
+      });
   }, [
     age,
     occupation,
     income,
     state,
-    isComplete,
-    numericAge,
-    numericIncome,
+    hasChecked,
   ]);
 
-  const strongMatches = results.filter(
-    (result) => result.score >= 70
-  );
+  const visibleResults =
+    showAllResults
+      ? results
+      : results.slice(0, 6);
 
-  const possibleMatches = results.filter(
-    (result) => result.score >= 40 && result.score < 70
-  );
+  const basicMatches =
+    results.filter(
+      (result) =>
+        result.status === "basic-match"
+    ).length;
 
-  const lowMatches = results.filter(
-    (result) => result.score < 40
-  );
+  const needsVerification =
+    results.filter(
+      (result) =>
+        result.status === "verify"
+    ).length;
 
-  function resetChecker() {
-    setStep(1);
+  function handleCheckEligibility() {
+    setHasChecked(true);
+    setShowAllResults(false);
+
+    window.setTimeout(() => {
+      document
+        .getElementById(
+          "eligibility-results"
+        )
+        ?.scrollIntoView({
+          behavior: "smooth",
+          block: "start",
+        });
+    }, 50);
+  }
+
+  function handleReset() {
     setAge("");
     setOccupation("");
     setIncome("");
     setState("");
-    setShowLowMatches(false);
-
-    window.scrollTo({
-      top: 0,
-      behavior: "smooth",
-    });
-  }
-
-  function startChecking() {
-    setStep(2);
-
-    setTimeout(() => {
-      window.scrollTo({
-        top: document.body.scrollHeight,
-        behavior: "smooth",
-      });
-    }, 100);
+    setHasChecked(false);
+    setShowAllResults(false);
   }
 
   return (
-    <main className="min-h-screen bg-slate-50">
+    <main className="min-h-screen bg-gray-50">
+
       {/* =====================================================
           HERO
       ====================================================== */}
-      <section className="border-b border-slate-200 bg-white">
-        <div className="mx-auto max-w-5xl px-4 py-10 sm:px-6 lg:px-8 lg:py-14">
-          <div className="text-center">
-            <span className="inline-flex rounded-full bg-blue-50 px-3 py-1 text-sm font-semibold text-blue-700">
-              Preliminary eligibility checker
-            </span>
 
-            <h1 className="mt-4 text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl lg:text-5xl">
-              Which government schemes may fit you?
+      <section className="relative overflow-hidden bg-[#07111f] text-white">
+        <div className="absolute -left-32 -top-24 h-96 w-96 rounded-full bg-blue-500/20 blur-3xl" />
+
+        <div className="absolute -right-24 top-10 h-96 w-96 rounded-full bg-violet-500/15 blur-3xl" />
+
+        <div className="relative mx-auto max-w-7xl px-5 pb-24 pt-16 sm:px-6 lg:px-8 lg:pb-28 lg:pt-20">
+          <div className="max-w-3xl">
+
+            <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3.5 py-2 text-xs font-semibold text-blue-200 backdrop-blur">
+              <ShieldCheck size={15} />
+              Preliminary eligibility screening
+            </div>
+
+            <h1 className="mt-6 text-4xl font-black tracking-tight sm:text-5xl lg:text-6xl">
+              Find schemes you may
+              <span className="block text-blue-300">
+                be eligible for.
+              </span>
             </h1>
 
-            <p className="mx-auto mt-4 max-w-2xl text-base leading-7 text-slate-600 sm:text-lg">
-              Answer four simple questions. We&apos;ll compare your basic
-              profile with the scheme information available on SchemeSamjho.
+            <p className="mt-5 max-w-2xl text-base leading-7 text-gray-300 sm:text-lg">
+              Enter a few basic details and
+              SchemeSamjho will screen the schemes
+              in our database against the information
+              you provide.
             </p>
+
+            <div className="mt-7 flex flex-wrap gap-3 text-xs text-gray-300">
+
+              <div className="rounded-full border border-white/10 bg-white/5 px-3 py-2">
+                ✓ Age
+              </div>
+
+              <div className="rounded-full border border-white/10 bg-white/5 px-3 py-2">
+                ✓ Occupation
+              </div>
+
+              <div className="rounded-full border border-white/10 bg-white/5 px-3 py-2">
+                ✓ Income
+              </div>
+
+              <div className="rounded-full border border-white/10 bg-white/5 px-3 py-2">
+                ✓ State
+              </div>
+
+            </div>
           </div>
         </div>
       </section>
 
       {/* =====================================================
-          CHECKER
+          STEP 1 — FORM
       ====================================================== */}
-      <section className="mx-auto max-w-5xl px-4 py-8 sm:px-6 lg:px-8">
-        {/* PROGRESS */}
-        <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-          <div className="flex items-center justify-between">
-            <p className="text-sm font-semibold text-slate-900">
-              Your profile
-            </p>
 
-            <p className="text-sm text-slate-500">
-              {isComplete ? "Complete" : "4 questions"}
-            </p>
-          </div>
+      <section className="border-t border-gray-200 bg-gray-50">
 
-          <div className="mt-4 flex gap-2">
-            {[1, 2, 3, 4].map((item) => {
-              const completed =
-                (item === 1 && age !== "") ||
-                (item === 2 && occupation !== "") ||
-                (item === 3 && income !== "") ||
-                (item === 4 && state !== "");
+        <div className="mx-auto max-w-6xl px-5 pb-16 pt-16 sm:px-6 lg:px-8 lg:pb-20 lg:pt-20">
 
-              return (
-                <div
-                  key={item}
-                  className={`h-2 flex-1 rounded-full ${
-                    completed
-                      ? "bg-blue-600"
-                      : "bg-slate-200"
-                  }`}
-                />
-              );
-            })}
-          </div>
-        </div>
+          <div className="overflow-hidden rounded-3xl border border-gray-200 bg-white shadow-xl shadow-gray-900/5">
 
-        {/* =================================================
-            QUESTIONS
-        ================================================== */}
-        <div className="mt-5 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm sm:p-8">
-          {/* AGE */}
-          <div>
-            <div className="flex items-center gap-3">
-              <span className="flex h-9 w-9 items-center justify-center rounded-full bg-blue-50 font-bold text-blue-700">
-                1
-              </span>
+            <div className="p-6 sm:p-8 lg:p-10">
+
+              {/* FORM HEADER */}
 
               <div>
-                <h2 className="font-bold text-slate-900">
-                  What is your age?
+                <p className="text-sm font-semibold text-blue-600">
+                  Step 1
+                </p>
+
+                <h2 className="mt-2 text-2xl font-black tracking-tight text-gray-950 sm:text-3xl">
+                  Tell us about yourself
                 </h2>
 
-                <p className="text-sm text-slate-500">
-                  Enter your current age in years.
+                <p className="mt-3 max-w-2xl text-sm leading-6 text-gray-600">
+                  These details are used to perform
+                  the preliminary screening shown on
+                  this page.
                 </p>
               </div>
-            </div>
 
-            <div className="mt-4 max-w-xs">
-              <input
-                type="number"
-                min="1"
-                max="120"
-                value={age}
-                onChange={(event) => {
-                  setAge(event.target.value);
-                  setStep(1);
-                }}
-                placeholder="e.g. 25"
-                className="w-full rounded-xl border border-slate-300 px-4 py-3 text-sm text-slate-900 outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-100"
-              />
-            </div>
-          </div>
+              {/* FORM FIELDS */}
 
-          {/* OCCUPATION */}
-          <div className="mt-9 border-t border-slate-100 pt-8">
-            <div className="flex items-center gap-3">
-              <span className="flex h-9 w-9 items-center justify-center rounded-full bg-blue-50 font-bold text-blue-700">
-                2
-              </span>
+              <div className="mt-8 grid gap-5 md:grid-cols-2">
 
-              <div>
-                <h2 className="font-bold text-slate-900">
-                  What best describes your occupation?
-                </h2>
+                {/* AGE */}
 
-                <p className="text-sm text-slate-500">
-                  Choose the category closest to your current work.
-                </p>
-              </div>
-            </div>
-
-            <div className="mt-5 grid gap-3 sm:grid-cols-2">
-              {occupations.map((item) => {
-                const selected = occupation === item.value;
-
-                return (
-                  <button
-                    key={item.value}
-                    type="button"
-                    onClick={() => {
-                      setOccupation(item.value);
-                      setStep(1);
-                    }}
-                    className={`rounded-xl border p-4 text-left transition ${
-                      selected
-                        ? "border-blue-500 bg-blue-50 ring-2 ring-blue-100"
-                        : "border-slate-200 bg-white hover:border-blue-300 hover:bg-slate-50"
-                    }`}
+                <div>
+                  <label
+                    htmlFor="age"
+                    className="mb-2 block text-sm font-semibold text-gray-800"
                   >
-                    <div className="flex items-center justify-between gap-3">
-                      <p className="font-semibold text-slate-900">
-                        {item.label}
-                      </p>
+                    Your age
+                  </label>
 
-                      <span
-                        className={`flex h-5 w-5 items-center justify-center rounded-full border ${
-                          selected
-                            ? "border-blue-600 bg-blue-600 text-xs text-white"
-                            : "border-slate-300"
-                        }`}
-                      >
-                        {selected ? "✓" : ""}
-                      </span>
-                    </div>
+                  <input
+                    id="age"
+                    type="number"
+                    min="1"
+                    max="120"
+                    value={age}
+                    onChange={(event) =>
+                      setAge(event.target.value)
+                    }
+                    placeholder="e.g. 25"
+                    className="h-12 w-full rounded-xl border border-gray-200 bg-gray-50 px-4 text-sm text-gray-900 outline-none transition placeholder:text-gray-400 focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-500/10"
+                  />
+                </div>
 
-                    <p className="mt-1 text-xs leading-5 text-slate-500">
-                      {item.description}
-                    </p>
-                  </button>
-                );
-              })}
-            </div>
-          </div>
+                {/* OCCUPATION */}
 
-          {/* INCOME */}
-          <div className="mt-9 border-t border-slate-100 pt-8">
-            <div className="flex items-center gap-3">
-              <span className="flex h-9 w-9 items-center justify-center rounded-full bg-blue-50 font-bold text-blue-700">
-                3
-              </span>
-
-              <div>
-                <h2 className="font-bold text-slate-900">
-                  What is your annual household income?
-                </h2>
-
-                <p className="text-sm text-slate-500">
-                  Enter an approximate amount before taxes.
-                </p>
-              </div>
-            </div>
-
-            <div className="mt-4 max-w-md">
-              <div className="relative">
-                <span className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-sm font-semibold text-slate-400">
-                  ₹
-                </span>
-
-                <input
-                  type="number"
-                  min="0"
-                  value={income}
-                  onChange={(event) => {
-                    setIncome(event.target.value);
-                    setStep(1);
-                  }}
-                  placeholder="e.g. 300000"
-                  className="w-full rounded-xl border border-slate-300 py-3 pl-9 pr-4 text-sm text-slate-900 outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-100"
-                />
-              </div>
-
-              <p className="mt-2 text-xs leading-5 text-slate-500">
-                Some government schemes use different income definitions or
-                monthly income limits. We use this only as a preliminary
-                screening input.
-              </p>
-            </div>
-          </div>
-
-          {/* STATE */}
-          <div className="mt-9 border-t border-slate-100 pt-8">
-            <div className="flex items-center gap-3">
-              <span className="flex h-9 w-9 items-center justify-center rounded-full bg-blue-50 font-bold text-blue-700">
-                4
-              </span>
-
-              <div>
-                <h2 className="font-bold text-slate-900">
-                  Which state or union territory do you live in?
-                </h2>
-
-                <p className="text-sm text-slate-500">
-                  This helps identify schemes with location-specific rules.
-                </p>
-              </div>
-            </div>
-
-            <div className="mt-4 max-w-md">
-              <select
-                value={state}
-                onChange={(event) => {
-                  setState(event.target.value);
-                  setStep(1);
-                }}
-                className="w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-700 outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-100"
-              >
-                <option value="">
-                  Select your state / UT
-                </option>
-
-                {states.map((item) => (
-                  <option
-                    key={item}
-                    value={item}
+                <div>
+                  <label
+                    htmlFor="occupation"
+                    className="mb-2 block text-sm font-semibold text-gray-800"
                   >
-                    {item}
-                  </option>
-                ))}
-              </select>
-            </div>
-          </div>
+                    Occupation
+                  </label>
 
-          {/* CHECK BUTTON */}
-          <div className="mt-9 border-t border-slate-100 pt-8">
-            <button
-              type="button"
-              disabled={!isComplete}
-              onClick={startChecking}
-              className={`w-full rounded-xl px-5 py-3.5 text-sm font-semibold transition sm:w-auto ${
-                isComplete
-                  ? "bg-blue-600 text-white hover:bg-blue-700"
-                  : "cursor-not-allowed bg-slate-200 text-slate-400"
-              }`}
-            >
-              Find Matching Schemes
-              <span className="ml-2">→</span>
-            </button>
+                  <select
+                    id="occupation"
+                    value={occupation}
+                    onChange={(event) =>
+                      setOccupation(
+                        event.target.value
+                      )
+                    }
+                    className="h-12 w-full rounded-xl border border-gray-200 bg-gray-50 px-4 text-sm text-gray-900 outline-none transition focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-500/10"
+                  >
+                    <option value="">
+                      Select occupation
+                    </option>
 
-            {!isComplete && (
-              <p className="mt-3 text-xs text-slate-500">
-                Please answer all four questions to see your results.
-              </p>
-            )}
-          </div>
-        </div>
-
-        {/* =================================================
-            PROFILE SUMMARY
-        ================================================== */}
-        {isComplete && step >= 2 && (
-          <div className="mt-6 rounded-2xl border border-blue-100 bg-blue-50 p-5">
-            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-              <div>
-                <p className="text-sm font-semibold text-blue-900">
-                  Your screening profile
-                </p>
-
-                <div className="mt-2 flex flex-wrap gap-2">
-                  <span className="rounded-full bg-white px-3 py-1.5 text-xs font-semibold text-blue-800">
-                    Age: {age}
-                  </span>
-
-                  <span className="rounded-full bg-white px-3 py-1.5 text-xs font-semibold text-blue-800">
-                    {getOccupationLabel(
-                      occupation as Occupation
+                    {occupations.map(
+                      (item) => (
+                        <option
+                          key={item}
+                          value={item}
+                        >
+                          {item}
+                        </option>
+                      )
                     )}
-                  </span>
-
-                  <span className="rounded-full bg-white px-3 py-1.5 text-xs font-semibold text-blue-800">
-                    Income: {formatIncome(numericIncome)}
-                  </span>
-
-                  <span className="rounded-full bg-white px-3 py-1.5 text-xs font-semibold text-blue-800">
-                    {state}
-                  </span>
+                  </select>
                 </div>
+
+                {/* INCOME */}
+
+                <div>
+                  <label
+                    htmlFor="income"
+                    className="mb-2 block text-sm font-semibold text-gray-800"
+                  >
+                    Annual household income
+                  </label>
+
+                  <div className="relative">
+                    <span className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-sm font-semibold text-gray-500">
+                      ₹
+                    </span>
+
+                    <input
+                      id="income"
+                      type="number"
+                      min="0"
+                      value={income}
+                      onChange={(event) =>
+                        setIncome(
+                          event.target.value
+                        )
+                      }
+                      placeholder="e.g. 300000"
+                      className="h-12 w-full rounded-xl border border-gray-200 bg-gray-50 pl-9 pr-4 text-sm text-gray-900 outline-none transition placeholder:text-gray-400 focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-500/10"
+                    />
+                  </div>
+                </div>
+
+                {/* STATE */}
+
+                <div>
+                  <label
+                    htmlFor="state"
+                    className="mb-2 block text-sm font-semibold text-gray-800"
+                  >
+                    State / UT
+                  </label>
+
+                  <select
+                    id="state"
+                    value={state}
+                    onChange={(event) =>
+                      setState(
+                        event.target.value
+                      )
+                    }
+                    className="h-12 w-full rounded-xl border border-gray-200 bg-gray-50 px-4 text-sm text-gray-900 outline-none transition focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-500/10"
+                  >
+                    <option value="">
+                      Select state / UT
+                    </option>
+
+                    {states.map(
+                      (item) => (
+                        <option
+                          key={item}
+                          value={item}
+                        >
+                          {item}
+                        </option>
+                      )
+                    )}
+                  </select>
+                </div>
+
               </div>
 
-              <button
-                type="button"
-                onClick={resetChecker}
-                className="rounded-xl border border-blue-200 bg-white px-4 py-2.5 text-sm font-semibold text-blue-700 transition hover:bg-blue-100"
-              >
-                Start over
-              </button>
-            </div>
-          </div>
-        )}
+              {/* BUTTONS */}
 
-        {/* =================================================
-            RESULTS
-        ================================================== */}
-        {isComplete && step >= 2 && (
-          <div className="mt-8">
-            {/* RESULT HEADER */}
-            <div>
-              <p className="text-sm font-semibold text-blue-700">
-                Your results
-              </p>
+              <div className="mt-8 flex flex-col gap-3 sm:flex-row">
 
-              <h2 className="mt-1 text-2xl font-bold text-slate-900 sm:text-3xl">
-                Schemes that may be relevant to you
-              </h2>
-
-              <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-600">
-                These results are based on the four details you provided and
-                the screening information in SchemeSamjho. They are not an
-                official eligibility decision.
-              </p>
-            </div>
-
-            {/* STRONG MATCHES */}
-            {strongMatches.length > 0 && (
-              <section className="mt-7">
-                <div className="mb-4 flex items-end justify-between gap-4">
-                  <div>
-                    <h3 className="text-lg font-bold text-slate-900">
-                      Strong matches
-                    </h3>
-
-                    <p className="text-sm text-slate-500">
-                      Your profile matches several basic signals used in our
-                      screening.
-                    </p>
-                  </div>
-
-                  <span className="rounded-full bg-green-50 px-3 py-1 text-xs font-semibold text-green-700">
-                    {strongMatches.length}
-                  </span>
-                </div>
-
-                <div className="space-y-5">
-                  {strongMatches.map((result) => (
-                    <ResultCard
-                      key={result.scheme.slug}
-                      result={result}
-                    />
-                  ))}
-                </div>
-              </section>
-            )}
-
-            {/* POSSIBLE MATCHES */}
-            {possibleMatches.length > 0 && (
-              <section className="mt-10">
-                <div className="mb-4 flex items-end justify-between gap-4">
-                  <div>
-                    <h3 className="text-lg font-bold text-slate-900">
-                      Possible matches
-                    </h3>
-
-                    <p className="text-sm text-slate-500">
-                      These schemes may be relevant, but some conditions need
-                      closer verification.
-                    </p>
-                  </div>
-
-                  <span className="rounded-full bg-amber-50 px-3 py-1 text-xs font-semibold text-amber-700">
-                    {possibleMatches.length}
-                  </span>
-                </div>
-
-                <div className="space-y-5">
-                  {possibleMatches.map((result) => (
-                    <ResultCard
-                      key={result.scheme.slug}
-                      result={result}
-                    />
-                  ))}
-                </div>
-              </section>
-            )}
-
-            {/* LOW MATCHES */}
-            {lowMatches.length > 0 && (
-              <section className="mt-10">
                 <button
                   type="button"
-                  onClick={() =>
-                    setShowLowMatches((current) => !current)
+                  onClick={
+                    handleCheckEligibility
                   }
-                  className="flex w-full items-center justify-between rounded-2xl border border-slate-200 bg-white p-5 text-left shadow-sm"
+                  className="inline-flex h-12 items-center justify-center gap-2 rounded-xl bg-gray-950 px-6 text-sm font-bold text-white transition hover:bg-gray-800"
                 >
-                  <div>
-                    <h3 className="font-bold text-slate-900">
-                      Other schemes
-                    </h3>
-
-                    <p className="mt-1 text-sm text-slate-500">
-                      These have fewer matching signals based on your current
-                      answers.
-                    </p>
-                  </div>
-
-                  <span className="text-slate-400">
-                    {showLowMatches ? "⌃" : "⌄"}
-                  </span>
+                  <Search size={17} />
+                  Check Eligibility
                 </button>
 
-                {showLowMatches && (
-                  <div className="mt-4 space-y-5">
-                    {lowMatches.map((result) => (
-                      <ResultCard
-                        key={result.scheme.slug}
-                        result={result}
-                      />
-                    ))}
-                  </div>
+                {hasChecked && (
+                  <button
+                    type="button"
+                    onClick={handleReset}
+                    className="inline-flex h-12 items-center justify-center rounded-xl border border-gray-200 bg-white px-6 text-sm font-semibold text-gray-700 transition hover:bg-gray-50"
+                  >
+                    Reset
+                  </button>
                 )}
-              </section>
+
+              </div>
+
+              {/* INFORMATION NOTICE */}
+
+              <div className="mt-7 flex gap-3 rounded-2xl border border-blue-100 bg-blue-50 p-4">
+
+                <Info
+                  size={19}
+                  className="mt-0.5 shrink-0 text-blue-600"
+                />
+
+                <p className="text-xs leading-5 text-blue-900">
+                  This is a preliminary screening
+                  tool, not an official eligibility
+                  decision. Final eligibility is
+                  determined by the relevant
+                  government department and may
+                  depend on documents and conditions
+                  that are not captured here.
+                </p>
+
+              </div>
+
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* =====================================================
+          RESULTS
+      ====================================================== */}
+
+      {hasChecked && (
+        <section
+          id="eligibility-results"
+          className="scroll-mt-8 bg-white py-16"
+        >
+          <div className="mx-auto max-w-7xl px-5 sm:px-6 lg:px-8">
+
+            {/* RESULT HEADER */}
+
+            <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
+
+              <div>
+                <p className="text-sm font-semibold text-blue-600">
+                  Step 2
+                </p>
+
+                <h2 className="mt-2 text-3xl font-black tracking-tight text-gray-950 sm:text-4xl">
+                  Your scheme results
+                </h2>
+
+                <p className="mt-3 max-w-2xl text-sm leading-6 text-gray-600">
+                  These results are based on the
+                  information you entered and the
+                  eligibility information currently
+                  available in SchemeSamjho.
+                </p>
+              </div>
+
+              <div className="flex flex-wrap gap-3">
+
+                <div className="rounded-2xl border border-emerald-100 bg-emerald-50 px-4 py-3">
+                  <p className="text-xs font-medium text-emerald-700">
+                    Basic matches
+                  </p>
+
+                  <p className="mt-1 text-xl font-black text-emerald-900">
+                    {basicMatches}
+                  </p>
+                </div>
+
+                <div className="rounded-2xl border border-amber-100 bg-amber-50 px-4 py-3">
+                  <p className="text-xs font-medium text-amber-700">
+                    Need verification
+                  </p>
+
+                  <p className="mt-1 text-xl font-black text-amber-900">
+                    {needsVerification}
+                  </p>
+                </div>
+
+              </div>
+            </div>
+
+            {/* RESULT CARDS */}
+
+            <div className="mt-10 space-y-6">
+
+              {visibleResults.map(
+                (result) => (
+                  <article
+                    key={
+                      result.scheme.slug
+                    }
+                    className="overflow-hidden rounded-3xl border border-gray-200 bg-white shadow-sm transition hover:border-gray-300 hover:shadow-md"
+                  >
+
+                    {/* STATUS ACCENT */}
+
+                    <div
+                      className={`h-1.5 ${
+                        result.status ===
+                        "basic-match"
+                          ? "bg-emerald-500"
+                          : result.status ===
+                              "verify"
+                            ? "bg-amber-500"
+                            : "bg-red-500"
+                      }`}
+                    />
+
+                    <div className="p-5 sm:p-7">
+
+                      {/* TITLE */}
+
+                      <div className="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
+
+                        <div className="min-w-0">
+
+                          <div className="flex flex-wrap items-center gap-2">
+
+                            <span
+                              className={`inline-flex rounded-full border px-3 py-1 text-xs font-bold ${getStatusStyles(
+                                result.status
+                              )}`}
+                            >
+                              {getStatusLabel(
+                                result.status
+                              )}
+                            </span>
+
+                            <span className="rounded-full border border-gray-200 bg-gray-50 px-3 py-1 text-xs font-semibold text-gray-600">
+                              {
+                                result.matchedConditions
+                              }
+                              /
+                              {
+                                result.totalConditions
+                              }{" "}
+                              criteria matched
+                            </span>
+
+                          </div>
+
+                          <h3 className="mt-4 text-2xl font-black tracking-tight text-gray-950">
+                            {
+                              result.scheme
+                                .name
+                            }
+                          </h3>
+
+                          <p className="mt-2 max-w-3xl text-sm leading-6 text-gray-600">
+                            {
+                              result.scheme
+                                .shortDescription
+                            }
+                          </p>
+
+                        </div>
+
+                        {/* SCORE */}
+
+                        <div className="shrink-0 rounded-2xl border border-gray-200 bg-gray-50 px-5 py-4 lg:min-w-[150px] lg:text-center">
+
+                          <p className="text-xs font-semibold uppercase tracking-wide text-gray-500">
+                            Screening score
+                          </p>
+
+                          <p className="mt-1 text-3xl font-black text-gray-950">
+                            {Math.max(
+                              0,
+                              result.score
+                            )}
+                          </p>
+
+                          <p className="text-xs text-gray-500">
+                            preliminary
+                          </p>
+
+                        </div>
+
+                      </div>
+
+                      {/* CONDITIONS */}
+
+                      <div className="mt-7 grid gap-3 md:grid-cols-2">
+
+                        {result.conditions.map(
+                          (condition) => (
+                            <div
+                              key={
+                                condition.name
+                              }
+                              className={`rounded-2xl border p-4 ${getConditionStyles(
+                                condition.status
+                              )}`}
+                            >
+
+                              <div className="flex items-start gap-3">
+
+                                <div className="mt-0.5 shrink-0">
+                                  {getConditionIcon(
+                                    condition.status
+                                  )}
+                                </div>
+
+                                <div className="min-w-0">
+
+                                  <p className="text-sm font-bold text-gray-900">
+                                    {
+                                      condition.name
+                                    }
+                                  </p>
+
+                                  <p className="mt-1 text-xs leading-5 text-gray-600">
+                                    {
+                                      condition.message
+                                    }
+                                  </p>
+
+                                </div>
+
+                              </div>
+
+                            </div>
+                          )
+                        )}
+
+                      </div>
+
+                      {/* REASONS / WARNINGS */}
+
+                      <div className="mt-7 grid gap-5 lg:grid-cols-2">
+
+                        {/* WHY MATCHED */}
+
+                        <div className="rounded-2xl border border-emerald-100 bg-emerald-50/60 p-5">
+
+                          <div className="flex items-center gap-2">
+
+                            <CheckCircle2
+                              size={18}
+                              className="text-emerald-600"
+                            />
+
+                            <h4 className="text-sm font-bold text-emerald-950">
+                              Why it matched
+                            </h4>
+
+                          </div>
+
+                          {result.reasons
+                            .length > 0 ? (
+                            <ul className="mt-3 space-y-2">
+
+                              {result.reasons.map(
+                                (reason) => (
+                                  <li
+                                    key={reason}
+                                    className="flex gap-2 text-xs leading-5 text-emerald-900"
+                                  >
+                                    <span className="mt-2 h-1 w-1 shrink-0 rounded-full bg-emerald-600" />
+                                    {reason}
+                                  </li>
+                                )
+                              )}
+
+                            </ul>
+                          ) : (
+                            <p className="mt-3 text-xs leading-5 text-emerald-900">
+                              No confirmed match was
+                              established from the
+                              available information.
+                            </p>
+                          )}
+
+                        </div>
+
+                        {/* NEEDS ATTENTION */}
+
+                        <div className="rounded-2xl border border-amber-100 bg-amber-50/60 p-5">
+
+                          <div className="flex items-center gap-2">
+
+                            <Info
+                              size={18}
+                              className="text-amber-600"
+                            />
+
+                            <h4 className="text-sm font-bold text-amber-950">
+                              What needs attention
+                            </h4>
+
+                          </div>
+
+                          {result.warnings
+                            .length > 0 ? (
+                            <ul className="mt-3 space-y-2">
+
+                              {result.warnings.map(
+                                (warning) => (
+                                  <li
+                                    key={warning}
+                                    className="flex gap-2 text-xs leading-5 text-amber-900"
+                                  >
+                                    <span className="mt-2 h-1 w-1 shrink-0 rounded-full bg-amber-600" />
+                                    {warning}
+                                  </li>
+                                )
+                              )}
+
+                            </ul>
+                          ) : (
+                            <p className="mt-3 text-xs leading-5 text-amber-900">
+                              No additional screening
+                              warnings were generated.
+                            </p>
+                          )}
+
+                        </div>
+
+                      </div>
+
+                      {/* SCHEME INFORMATION */}
+
+                      <div className="mt-7 grid gap-4 border-t border-gray-100 pt-6 sm:grid-cols-3">
+
+                        <div>
+                          <p className="text-xs font-semibold uppercase tracking-wide text-gray-400">
+                            Category
+                          </p>
+
+                          <p className="mt-1 text-sm font-bold text-gray-900">
+                            {
+                              result.scheme
+                                .category
+                            }
+                          </p>
+                        </div>
+
+                        <div>
+                          <p className="text-xs font-semibold uppercase tracking-wide text-gray-400">
+                            Benefits
+                          </p>
+
+                          <p className="mt-1 text-sm font-bold text-gray-900">
+                            {result.scheme.benefits.join(
+                              ", "
+                            )}
+                          </p>
+                        </div>
+
+                        <div>
+                          <p className="text-xs font-semibold uppercase tracking-wide text-gray-400">
+                            Last verified
+                          </p>
+
+                          <p className="mt-1 text-sm font-bold text-gray-900">
+                            {
+                              result.scheme
+                                .lastVerified
+                            }
+                          </p>
+                        </div>
+
+                      </div>
+
+                      {/* ACTIONS */}
+
+                      <div className="mt-7 flex flex-wrap items-center gap-3">
+
+                        <Link
+                          href={`/schemes/${result.scheme.slug}`}
+                          className="inline-flex items-center gap-2 rounded-xl bg-gray-950 px-4 py-2.5 text-sm font-bold text-white transition hover:bg-gray-800"
+                        >
+                          View Scheme
+                          <ArrowRight
+                            size={16}
+                          />
+                        </Link>
+
+                        <Link
+                          href={`/explainers/${result.scheme.slug}`}
+                          className="inline-flex items-center gap-2 rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm font-semibold text-gray-700 transition hover:bg-gray-50"
+                        >
+                          Read Explainer
+                        </Link>
+
+                        <FavoriteButton
+                          slug={
+                            result.scheme
+                              .slug
+                          }
+                        />
+
+                        <a
+                          href={
+                            result.scheme
+                              .officialUrl
+                          }
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center gap-2 rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm font-semibold text-gray-700 transition hover:bg-gray-50"
+                        >
+                          Official Source
+                          <ExternalLink
+                            size={15}
+                          />
+                        </a>
+
+                      </div>
+
+                    </div>
+                  </article>
+                )
+              )}
+
+            </div>
+
+            {/* SHOW MORE */}
+
+            {results.length > 6 && (
+              <div className="mt-10 text-center">
+
+                {!showAllResults ? (
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setShowAllResults(
+                        true
+                      )
+                    }
+                    className="rounded-xl border border-gray-200 bg-white px-6 py-3 text-sm font-bold text-gray-800 transition hover:bg-gray-50"
+                  >
+                    Show all{" "}
+                    {results.length} schemes
+                  </button>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setShowAllResults(
+                        false
+                      )
+                    }
+                    className="rounded-xl border border-gray-200 bg-white px-6 py-3 text-sm font-bold text-gray-800 transition hover:bg-gray-50"
+                  >
+                    Show fewer results
+                  </button>
+                )}
+
+              </div>
             )}
 
-            {/* NO RESULTS */}
-            {results.length === 0 && (
-              <div className="mt-7 rounded-2xl border border-slate-200 bg-white p-8 text-center">
-                <h3 className="font-bold text-slate-900">
-                  No matching schemes found
+            {/* TRUST NOTICE */}
+
+            <div className="mt-12 rounded-3xl border border-gray-200 bg-gray-50 p-6 sm:p-8">
+
+              <div className="flex flex-col gap-5 sm:flex-row sm:items-start">
+
+                <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-white shadow-sm">
+                  <ShieldCheck
+                    size={22}
+                    className="text-blue-600"
+                  />
+                </div>
+
+                <div>
+
+                  <h3 className="text-lg font-black text-gray-950">
+                    Important: verify before applying
+                  </h3>
+
+                  <p className="mt-2 text-sm leading-6 text-gray-600">
+                    SchemeSamjho provides a
+                    preliminary screening based on
+                    the information available in our
+                    scheme database. It does not
+                    guarantee that you qualify.
+                    Government departments may apply
+                    additional conditions,
+                    documentation requirements,
+                    exclusions or verification
+                    procedures.
+                  </p>
+
+                  <p className="mt-3 text-sm leading-6 text-gray-600">
+                    Always review the official scheme
+                    information before submitting an
+                    application or relying on a
+                    benefit.
+                  </p>
+
+                </div>
+
+              </div>
+
+            </div>
+
+          </div>
+        </section>
+      )}
+
+      {/* =====================================================
+          HOW IT WORKS
+      ====================================================== */}
+
+      {!hasChecked && (
+        <section className="border-t border-gray-200 bg-white py-16">
+
+          <div className="mx-auto max-w-6xl px-5 sm:px-6 lg:px-8">
+
+            <div className="grid gap-6 md:grid-cols-3">
+
+              {/* CARD 1 */}
+
+              <div className="rounded-3xl border border-gray-200 bg-gray-50 p-6">
+
+                <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-white shadow-sm">
+                  <Search
+                    size={21}
+                    className="text-blue-600"
+                  />
+                </div>
+
+                <h3 className="mt-5 text-lg font-black text-gray-950">
+                  1. Enter your details
                 </h3>
 
-                <p className="mt-2 text-sm text-slate-500">
-                  Try changing your profile information and check again.
+                <p className="mt-2 text-sm leading-6 text-gray-600">
+                  Provide basic information such as
+                  age, occupation, income and state.
                 </p>
+
               </div>
-            )}
 
-            {/* =================================================
-                DISCLAIMER
-            ================================================== */}
-            <div className="mt-8 rounded-2xl border border-amber-200 bg-amber-50 p-5">
-              <p className="text-sm font-semibold text-amber-900">
-                Important: this is not official eligibility
-              </p>
+              {/* CARD 2 */}
 
-              <p className="mt-2 text-sm leading-6 text-amber-800">
-                SchemeSamjho provides a preliminary screening based on basic
-                information. Government schemes can have detailed conditions
-                involving land records, family status, category, employment,
-                previous benefits, documents, databases and other factors.
-                Always verify your final eligibility through the official
-                government source before applying.
-              </p>
+              <div className="rounded-3xl border border-gray-200 bg-gray-50 p-6">
+
+                <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-white shadow-sm">
+                  <CheckCircle2
+                    size={21}
+                    className="text-emerald-600"
+                  />
+                </div>
+
+                <h3 className="mt-5 text-lg font-black text-gray-950">
+                  2. Review matches
+                </h3>
+
+                <p className="mt-2 text-sm leading-6 text-gray-600">
+                  See which criteria appear to match
+                  and which ones require additional
+                  verification.
+                </p>
+
+              </div>
+
+              {/* CARD 3 */}
+
+              <div className="rounded-3xl border border-gray-200 bg-gray-50 p-6">
+
+                <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-white shadow-sm">
+                  <ExternalLink
+                    size={21}
+                    className="text-violet-600"
+                  />
+                </div>
+
+                <h3 className="mt-5 text-lg font-black text-gray-950">
+                  3. Verify officially
+                </h3>
+
+                <p className="mt-2 text-sm leading-6 text-gray-600">
+                  Open the official source and confirm
+                  the latest eligibility and application
+                  requirements.
+                </p>
+
+              </div>
+
             </div>
+
           </div>
-        )}
-      </section>
+        </section>
+      )}
+
     </main>
-  );
-}
-
-/* =========================================================
-   RESULT CARD
-========================================================= */
-
-function ResultCard({ result }: { result: Result }) {
-  const { scheme, score, reasons, warnings } = result;
-  const match = getMatchLabel(score);
-
-  return (
-    <article className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
-      {/* CARD HEADER */}
-      <div className="border-b border-slate-100 p-5 sm:p-6">
-        <div className="flex flex-col gap-5 sm:flex-row sm:items-start sm:justify-between">
-          <div>
-            <div className="flex flex-wrap items-center gap-2">
-              <span className="rounded-full bg-blue-50 px-3 py-1 text-xs font-semibold text-blue-700">
-                {scheme.category}
-              </span>
-
-              <span
-                className={`rounded-full px-3 py-1 text-xs font-semibold ${match.className}`}
-              >
-                {match.label}
-              </span>
-            </div>
-
-            <h3 className="mt-3 text-xl font-bold text-slate-900">
-              {scheme.name}
-            </h3>
-
-            <p className="mt-2 text-sm leading-6 text-slate-600">
-              {scheme.shortDescription}
-            </p>
-          </div>
-
-          {/* SCORE */}
-          <div className="shrink-0 sm:text-right">
-            <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">
-              Profile match
-            </p>
-
-            <p className="mt-1 text-3xl font-bold text-slate-900">
-              {score}%
-            </p>
-          </div>
-        </div>
-      </div>
-
-      {/* QUICK INFO */}
-      <div className="grid grid-cols-2 border-b border-slate-100 sm:grid-cols-4">
-        <div className="border-b border-slate-100 p-4 sm:border-b-0 sm:border-r">
-          <p className="text-[11px] font-semibold uppercase tracking-wide text-slate-400">
-            Age
-          </p>
-
-          <p className="mt-1 text-xs font-semibold text-slate-700">
-            {formatAge(scheme.minAge, scheme.maxAge)}
-          </p>
-        </div>
-
-        <div className="border-b border-slate-100 p-4 sm:border-b-0 sm:border-r">
-          <p className="text-[11px] font-semibold uppercase tracking-wide text-slate-400">
-            Income
-          </p>
-
-          <p className="mt-1 text-xs font-semibold text-slate-700">
-            {scheme.maxIncome !== undefined
-              ? `≤ ${formatIncome(scheme.maxIncome)}`
-              : "Verify"}
-          </p>
-        </div>
-
-        <div className="border-r border-slate-100 p-4">
-          <p className="text-[11px] font-semibold uppercase tracking-wide text-slate-400">
-            Category
-          </p>
-
-          <p className="mt-1 text-xs font-semibold text-slate-700">
-            {scheme.category}
-          </p>
-        </div>
-
-        <div className="p-4">
-          <p className="text-[11px] font-semibold uppercase tracking-wide text-slate-400">
-            Reviewed
-          </p>
-
-          <p className="mt-1 text-xs font-semibold text-slate-700">
-            {scheme.lastVerified}
-          </p>
-        </div>
-      </div>
-
-      {/* CONTENT */}
-      <div className="grid gap-6 p-5 sm:p-6 lg:grid-cols-2">
-        {/* MATCHING SIGNALS */}
-        <div>
-          <h4 className="font-bold text-slate-900">
-            Why it matched
-          </h4>
-
-          <div className="mt-4 space-y-3">
-            {reasons.map((reason, index) => (
-              <div
-                key={`${reason}-${index}`}
-                className="flex gap-3"
-              >
-                <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-green-100 text-xs font-bold text-green-700">
-                  ✓
-                </span>
-
-                <p className="text-sm leading-6 text-slate-600">
-                  {reason}
-                </p>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* VERIFY */}
-        <div>
-          <h4 className="font-bold text-slate-900">
-            Things to verify
-          </h4>
-
-          <div className="mt-4 space-y-3">
-            {warnings.slice(0, 4).map((warning, index) => (
-              <div
-                key={`${warning}-${index}`}
-                className="flex gap-3"
-              >
-                <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-amber-100 text-xs font-bold text-amber-700">
-                  !
-                </span>
-
-                <p className="text-sm leading-6 text-slate-600">
-                  {warning}
-                </p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
-
-      {/* OFFICIAL FACTORS */}
-      <div className="border-t border-slate-100 bg-slate-50 p-5 sm:p-6">
-        <h4 className="font-bold text-slate-900">
-          Official eligibility factors to check
-        </h4>
-
-        <div className="mt-4 grid gap-3 sm:grid-cols-2">
-          {scheme.eligibilitySummary.map((item, index) => (
-            <div
-              key={`${item}-${index}`}
-              className="flex gap-3 rounded-xl bg-white p-3 ring-1 ring-slate-100"
-            >
-              <span className="mt-0.5 text-blue-600">
-                •
-              </span>
-
-              <p className="text-xs leading-5 text-slate-600">
-                {item}
-              </p>
-            </div>
-          ))}
-        </div>
-
-        {/* EXCLUSIONS */}
-        {scheme.exclusions &&
-          scheme.exclusions.length > 0 && (
-            <div className="mt-5">
-              <h5 className="text-sm font-bold text-slate-900">
-                Important exclusions
-              </h5>
-
-              <div className="mt-3 space-y-2">
-                {scheme.exclusions
-                  .slice(0, 4)
-                  .map((item, index) => (
-                    <p
-                      key={`${item}-${index}`}
-                      className="text-xs leading-5 text-slate-600"
-                    >
-                      <span className="mr-2 font-bold text-amber-600">
-                        !
-                      </span>
-                      {item}
-                    </p>
-                  ))}
-              </div>
-            </div>
-          )}
-      </div>
-
-      {/* ACTIONS */}
-      <div className="flex flex-col gap-3 border-t border-slate-100 p-5 sm:flex-row sm:p-6">
-        <Link
-          href={`/schemes/${scheme.slug}`}
-          className="inline-flex flex-1 items-center justify-center rounded-xl bg-blue-600 px-4 py-3 text-sm font-semibold text-white transition hover:bg-blue-700"
-        >
-          View Scheme
-          <span className="ml-2">→</span>
-        </Link>
-
-        <Link
-          href={`/explainers/${scheme.slug}`}
-          className="inline-flex flex-1 items-center justify-center rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm font-semibold text-slate-700 transition hover:border-blue-300 hover:text-blue-700"
-        >
-          Read Explainer
-        </Link>
-
-        <a
-          href={scheme.officialUrl}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="inline-flex flex-1 items-center justify-center rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm font-semibold text-slate-700 transition hover:border-blue-300 hover:text-blue-700"
-        >
-          Official Source
-          <span className="ml-2">↗</span>
-        </a>
-      </div>
-    </article>
   );
 }

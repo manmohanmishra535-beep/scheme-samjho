@@ -1,99 +1,210 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useAuth, useUser } from "@clerk/nextjs";
+import { createClerkSupabaseClient } from "../lib/supabase";
 
 type FavoriteButtonProps = {
   slug: string;
 };
 
-const STORAGE_KEY = "schemesamjho-favorites";
-
 export default function FavoriteButton({
   slug,
 }: FavoriteButtonProps) {
+  const { isSignedIn, isLoaded, getToken } = useAuth();
+  const { user } = useUser();
+
   const [saved, setSaved] = useState(false);
-  const [ready, setReady] = useState(false);
+  const [loading, setLoading] = useState(false);
 
+  /*
+   * Check whether this scheme is already saved
+   */
   useEffect(() => {
-    try {
-      const stored = localStorage.getItem(STORAGE_KEY);
-
-      if (stored) {
-        const favorites: string[] = JSON.parse(stored);
-
-        setSaved(favorites.includes(slug));
+    async function checkSaved() {
+      if (!isLoaded || !isSignedIn || !user) {
+        setSaved(false);
+        return;
       }
-    } catch {
-      setSaved(false);
+
+      try {
+        const supabase =
+          createClerkSupabaseClient(getToken);
+
+        const { data, error } = await supabase
+          .from("saved_schemes")
+          .select("id")
+          .eq("user_id", user.id)
+          .eq("scheme_slug", slug)
+          .maybeSingle();
+
+        if (error) {
+          console.error(
+            "Error checking saved scheme:",
+            error
+          );
+          return;
+        }
+
+        setSaved(!!data);
+      } catch (error) {
+        console.error(
+          "Error checking saved scheme:",
+          error
+        );
+      }
     }
 
-    setReady(true);
-  }, [slug]);
+    checkSaved();
+  }, [
+    slug,
+    isLoaded,
+    isSignedIn,
+    user,
+    getToken,
+  ]);
 
-  function toggleFavorite() {
+  /*
+   * Save / remove scheme
+   */
+  async function handleSave() {
+    if (
+      !isLoaded ||
+      !isSignedIn ||
+      !user ||
+      loading
+    ) {
+      return;
+    }
+
+    setLoading(true);
+
     try {
-      const stored = localStorage.getItem(STORAGE_KEY);
+      const supabase =
+        createClerkSupabaseClient(getToken);
 
-      let favorites: string[] = [];
+      if (saved) {
+        /*
+         * Remove scheme
+         */
+        const { error } = await supabase
+          .from("saved_schemes")
+          .delete()
+          .eq("user_id", user.id)
+          .eq("scheme_slug", slug);
 
-      if (stored) {
-        favorites = JSON.parse(stored);
-
-        if (!Array.isArray(favorites)) {
-          favorites = [];
+        if (error) {
+          console.error(
+            "Error removing saved scheme:",
+            error
+          );
+          return;
         }
-      }
-
-      if (favorites.includes(slug)) {
-        favorites = favorites.filter(
-          (item) => item !== slug
-        );
 
         setSaved(false);
-      } else {
-        favorites = [...favorites, slug];
+
+        /*
+         * Tell Navbar / Dashboard / other components
+         * that the saved list has changed.
+         */
+        window.dispatchEvent(
+          new Event("saved-schemes-changed")
+        );
+      } 
+      else {
+        /*
+         * Save scheme
+         */
+        const { error } = await supabase
+          .from("saved_schemes")
+          .insert({
+            user_id: user.id,
+            scheme_slug: slug,
+          });
+
+        if (error) {
+          console.error(
+            "Error saving scheme:",
+            error
+          );
+          return;
+        }
 
         setSaved(true);
+
+        /*
+         * Tell Navbar / Dashboard / other components
+         * that the saved list has changed.
+         */
+        window.dispatchEvent(
+          new Event("saved-schemes-changed")
+        );
       }
-
-      localStorage.setItem(
-        STORAGE_KEY,
-        JSON.stringify(favorites)
-      );
-
-      window.dispatchEvent(
-        new Event("favoritesChanged")
-      );
-    } catch {
+    } catch (error) {
       console.error(
-        "Unable to update saved schemes."
+        "Error updating saved scheme:",
+        error
       );
+    } finally {
+      setLoading(false);
     }
   }
 
-  if (!ready) {
+  /*
+   * Loading state
+   */
+  if (!isLoaded) {
     return (
       <button
         type="button"
         disabled
-        className="rounded-xl border border-purple-200 bg-purple-50 px-5 py-3 font-semibold text-purple-300"
+        className="rounded-lg border border-gray-200 px-4 py-2 text-sm text-gray-400"
       >
-        ♡ Save Scheme
+        Loading...
       </button>
     );
   }
 
+  /*
+   * Signed-out state
+   */
+  if (!isSignedIn) {
+    return (
+      <button
+        type="button"
+        disabled
+        title="Sign in to save schemes"
+        className="rounded-lg border border-gray-200 px-4 py-2 text-sm text-gray-400"
+      >
+        ♡ Sign in to Save
+      </button>
+    );
+  }
+
+  /*
+   * Signed-in state
+   */
   return (
     <button
       type="button"
-      onClick={toggleFavorite}
-      className={`rounded-xl border px-5 py-3 font-semibold transition ${
+      onClick={handleSave}
+      disabled={loading}
+      aria-label={
         saved
-          ? "border-purple-700 bg-purple-700 text-white hover:bg-purple-800"
-          : "border-purple-300 bg-purple-50 text-purple-700 hover:bg-purple-100"
-      }`}
+          ? "Remove scheme from saved schemes"
+          : "Save scheme"
+      }
+      className={`rounded-lg border px-4 py-2 text-sm font-medium transition ${
+        saved
+          ? "border-blue-200 bg-blue-50 text-blue-700 hover:bg-blue-100"
+          : "border-gray-200 text-gray-700 hover:bg-gray-50"
+      } disabled:cursor-not-allowed disabled:opacity-50`}
     >
-      {saved ? "♥ Saved" : "♡ Save Scheme"}
+      {loading
+        ? "Saving..."
+        : saved
+          ? "♥ Saved"
+          : "♡ Save Scheme"}
     </button>
   );
 }
