@@ -1,362 +1,543 @@
 import Link from "next/link";
+import {
+  ArrowRight,
+  BookOpen,
+  CheckCircle2,
+  ExternalLink,
+  FileText,
+  Search,
+  ShieldCheck,
+  Target,
+} from "lucide-react";
 
 export const metadata = {
-  title: "About Us | SchemeSamjho",
+  title: "About SchemeSamjho",
   description:
-    "Learn what SchemeSamjho is, how we explain government schemes, and why official government sources remain the final authority.",
+    "Learn about SchemeSamjho, an informational platform that explains Indian government schemes in simple language.",
 };
-
-const principles = [
-  {
-    icon: "🗣️",
-    title: "Simple language",
-    description:
-      "Government scheme information can be difficult to understand. We turn complicated information into clearer, easier-to-read explanations.",
-  },
-  {
-    icon: "🔎",
-    title: "Easy discovery",
-    description:
-      "Search and browse schemes by category, occupation, benefits, and other useful keywords.",
-  },
-  {
-    icon: "📋",
-    title: "Useful details",
-    description:
-      "Each scheme page highlights benefits, eligibility factors, documents, exclusions, and official sources.",
-  },
-  {
-    icon: "🔗",
-    title: "Official verification",
-    description:
-      "We provide official source links so you can verify the latest information before applying.",
-  },
-];
-
-const steps = [
-  {
-    number: "1",
-    title: "Find",
-    description:
-      "Search for a government scheme or browse schemes by category.",
-  },
-  {
-    number: "2",
-    title: "Understand",
-    description:
-      "Read a simple explanation of benefits, eligibility, documents, and important conditions.",
-  },
-  {
-    number: "3",
-    title: "Verify",
-    description:
-      "Visit the relevant official government source for the latest rules and application process.",
-  },
-];
 
 export default function AboutPage() {
   return (
-    <main className="min-h-screen bg-slate-50">
-      {/* =====================================================
-          HERO
-      ====================================================== */}
-      <section className="border-b border-slate-200 bg-white">
-        <div className="mx-auto max-w-6xl px-6 py-14 md:py-20">
-          <div className="max-w-3xl">
-            <span className="inline-flex rounded-full bg-blue-50 px-4 py-2 text-sm font-semibold text-blue-700">
-              About SchemeSamjho
-            </span>
+    <main className="min-h-screen bg-[#FFFFFF]">
 
-            <h1 className="mt-5 text-4xl font-bold tracking-tight text-slate-900 md:text-5xl">
-              Government schemes, made easier to understand.
+      {/* Hero */}
+      <section className="bg-[#111827]">
+        <div className="mx-auto max-w-7xl px-6 py-14 sm:px-8 sm:py-16 lg:px-10 lg:py-20">
+
+          <div className="max-w-3xl">
+
+            <div className="inline-flex items-center gap-2 rounded-full border border-[#FFFFFF]/20 px-4 py-2 text-sm font-semibold text-[#FFFFFF]">
+              <BookOpen size={16} />
+              About SchemeSamjho
+            </div>
+
+            <h1 className="mt-6 text-4xl font-extrabold leading-[1.06] tracking-tight text-[#FFFFFF] sm:text-5xl lg:text-6xl">
+              Government schemes,
+              <br />
+              made easier to understand.
             </h1>
 
-            <p className="mt-6 text-lg leading-8 text-slate-600">
-              SchemeSamjho is an independent information platform designed to
-              help people understand Indian government schemes without having
-              to navigate complicated terminology first.
+            <p className="mt-6 max-w-2xl text-base leading-7 text-[#FFFFFF]/75 sm:text-lg">
+              SchemeSamjho helps people understand government schemes,
+              benefits, eligibility requirements, documents and
+              application information in simple language.
             </p>
+
           </div>
+
         </div>
       </section>
 
-      {/* =====================================================
-          WHAT WE DO
-      ====================================================== */}
-      <section className="mx-auto max-w-6xl px-6 py-14 md:py-16">
-        <div className="grid gap-8 lg:grid-cols-[1.1fr_0.9fr]">
-          <div>
-            <p className="text-sm font-semibold text-blue-600">
-              What we do
-            </p>
+      {/* Introduction */}
+      <section>
+        <div className="mx-auto max-w-7xl px-6 py-12 sm:px-8 sm:py-16 lg:px-10">
 
-            <h2 className="mt-2 text-3xl font-bold text-slate-900">
-              We explain. We don't make government decisions.
-            </h2>
+          <div className="grid gap-10 lg:grid-cols-[1.4fr_0.8fr] lg:items-start">
 
-            <div className="mt-5 space-y-4 text-slate-600">
-              <p className="leading-7">
-                Government schemes can provide important support for farmers,
-                students, workers, businesses, women, families, and many other
-                groups. However, finding the right scheme and understanding its
-                conditions is not always easy.
+            <div>
+
+              <p className="text-sm font-bold text-[#2563EB]">
+                What we do
               </p>
 
-              <p className="leading-7">
-                SchemeSamjho brings useful scheme information together in one
-                place and presents it in simpler language.
-              </p>
+              <h2 className="mt-2 text-3xl font-extrabold tracking-tight text-[#111827] sm:text-4xl">
+                Making scheme information easier to understand
+              </h2>
 
-              <p className="leading-7">
-                Our goal is to help you understand a scheme before you decide
-                whether to explore or apply for it.
-              </p>
-            </div>
-          </div>
+              <div className="mt-6 space-y-5 text-base leading-8 text-[#111827]/65">
 
-          <div className="rounded-3xl border border-blue-100 bg-blue-50 p-7">
-            <div className="text-3xl">🎯</div>
-
-            <h3 className="mt-5 text-xl font-bold text-slate-900">
-              Our goal
-            </h3>
-
-            <p className="mt-3 leading-7 text-slate-700">
-              Make government scheme information easier to discover,
-              understand, compare, and verify.
-            </p>
-
-            <div className="mt-6 rounded-2xl bg-white p-5">
-              <p className="text-sm font-semibold text-slate-900">
-                The simple rule we follow
-              </p>
-
-              <p className="mt-2 text-sm leading-6 text-slate-600">
-                Understand the information on SchemeSamjho first, then verify
-                the latest details on the official government source.
-              </p>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* =====================================================
-          PRINCIPLES
-      ====================================================== */}
-      <section className="border-y border-slate-200 bg-white">
-        <div className="mx-auto max-w-6xl px-6 py-14 md:py-16">
-          <div className="text-center">
-            <p className="text-sm font-semibold text-blue-600">
-              What you can expect
-            </p>
-
-            <h2 className="mt-2 text-3xl font-bold text-slate-900">
-              Built around clarity and transparency
-            </h2>
-
-            <p className="mx-auto mt-4 max-w-2xl leading-7 text-slate-600">
-              We focus on making scheme information easier to use while being
-              clear about the limits of our platform.
-            </p>
-          </div>
-
-          <div className="mt-10 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
-            {principles.map((principle) => (
-              <div
-                key={principle.title}
-                className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm"
-              >
-                <div className="text-3xl">{principle.icon}</div>
-
-                <h3 className="mt-5 font-bold text-slate-900">
-                  {principle.title}
-                </h3>
-
-                <p className="mt-2 text-sm leading-6 text-slate-600">
-                  {principle.description}
+                <p>
+                  Government schemes can provide important support,
+                  but finding and understanding the right information
+                  can sometimes be difficult.
                 </p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
 
-      {/* =====================================================
-          HOW IT WORKS
-      ====================================================== */}
-      <section className="mx-auto max-w-6xl px-6 py-14 md:py-16">
-        <div className="text-center">
-          <p className="text-sm font-semibold text-blue-600">
-            How SchemeSamjho works
-          </p>
+                <p>
+                  SchemeSamjho presents scheme information in a
+                  simpler format so that people can quickly understand
+                  what a scheme is, who it is intended for, what
+                  benefits are described, which documents may be
+                  required and where to find the official application
+                  information.
+                </p>
 
-          <h2 className="mt-2 text-3xl font-bold text-slate-900">
-            Find → Understand → Verify
-          </h2>
-        </div>
+                <p>
+                  Our goal is not to replace government portals.
+                  Instead, SchemeSamjho acts as an information and
+                  discovery layer that helps users understand what
+                  they should look for before visiting an official
+                  source.
+                </p>
 
-        <div className="mt-10 grid gap-6 md:grid-cols-3">
-          {steps.map((step) => (
-            <div
-              key={step.number}
-              className="rounded-2xl border border-slate-200 bg-white p-7 shadow-sm"
-            >
-              <div className="flex h-11 w-11 items-center justify-center rounded-full bg-blue-600 font-bold text-white">
-                {step.number}
               </div>
 
-              <h3 className="mt-5 text-xl font-bold text-slate-900">
-                {step.title}
-              </h3>
-
-              <p className="mt-2 leading-7 text-slate-600">
-                {step.description}
-              </p>
             </div>
-          ))}
-        </div>
-      </section>
 
-      {/* =====================================================
-          OFFICIAL SOURCES
-      ====================================================== */}
-      <section className="border-y border-slate-200 bg-white">
-        <div className="mx-auto max-w-6xl px-6 py-14 md:py-16">
-          <div className="grid gap-8 lg:grid-cols-[1fr_1fr] lg:items-center">
-            <div>
-              <p className="text-sm font-semibold text-green-600">
-                Official sources matter
-              </p>
+            <div className="rounded-2xl bg-[#111827] p-6 sm:p-8">
 
-              <h2 className="mt-2 text-3xl font-bold text-slate-900">
-                SchemeSamjho is a guide, not the final authority.
+              <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-[#2563EB]">
+                <Target
+                  size={23}
+                  className="text-[#FFFFFF]"
+                />
+              </div>
+
+              <h2 className="mt-6 text-xl font-extrabold text-[#FFFFFF]">
+                Our purpose
               </h2>
 
-              <p className="mt-4 leading-7 text-slate-600">
-                Government scheme rules, benefits, eligibility conditions,
-                deadlines, and application processes can change. That's why
-                every scheme page provides an official source link whenever
-                available.
+              <p className="mt-3 text-sm leading-7 text-[#FFFFFF]/65">
+                Help people move from confusion to understanding
+                when exploring government schemes.
               </p>
 
-              <p className="mt-4 leading-7 text-slate-600">
-                Before applying, always confirm the latest requirements through
-                the relevant government department, portal, or authorised
-                channel.
+              <div className="mt-6 h-px bg-[#FFFFFF]/10" />
+
+              <p className="mt-6 text-xs font-semibold leading-5 text-[#FFFFFF]/45">
+                SchemeSamjho is an independent informational
+                platform and is not a government department.
               </p>
+
             </div>
 
-            <div className="rounded-2xl border border-green-200 bg-green-50 p-7">
-              <div className="flex items-center gap-3">
-                <span className="flex h-10 w-10 items-center justify-center rounded-full bg-green-100 text-green-700">
-                  ✓
-                </span>
+          </div>
 
-                <h3 className="font-bold text-green-950">
-                  Important distinction
-                </h3>
+        </div>
+      </section>
+
+      {/* How it works */}
+      <section className="bg-[#111827]/5">
+
+        <div className="mx-auto max-w-7xl px-6 py-12 sm:px-8 sm:py-16 lg:px-10">
+
+          <div className="max-w-2xl">
+
+            <p className="text-sm font-bold text-[#2563EB]">
+              How SchemeSamjho works
+            </p>
+
+            <h2 className="mt-2 text-3xl font-extrabold tracking-tight text-[#111827] sm:text-4xl">
+              Understand first. Verify officially. Apply through the
+              right channel.
+            </h2>
+
+          </div>
+
+          <div className="mt-10 grid gap-6 md:grid-cols-3">
+
+            <ProcessCard
+              number="01"
+              icon={<Search size={22} />}
+              title="Discover"
+              description="Browse or search schemes based on categories, occupations and other information."
+            />
+
+            <ProcessCard
+              number="02"
+              icon={<BookOpen size={22} />}
+              title="Understand"
+              description="Read simplified information about benefits, eligibility, documents and how a scheme works."
+            />
+
+            <ProcessCard
+              number="03"
+              icon={<ExternalLink size={22} />}
+              title="Verify"
+              description="Use the official government source to confirm current requirements and application procedures."
+            />
+
+          </div>
+
+        </div>
+
+      </section>
+
+      {/* What users can find */}
+      <section>
+
+        <div className="mx-auto max-w-7xl px-6 py-12 sm:px-8 sm:py-16 lg:px-10">
+
+          <div className="max-w-2xl">
+
+            <p className="text-sm font-bold text-[#2563EB]">
+              What you can find
+            </p>
+
+            <h2 className="mt-2 text-3xl font-extrabold tracking-tight text-[#111827] sm:text-4xl">
+              Information organized around your questions
+            </h2>
+
+            <p className="mt-4 text-base leading-7 text-[#111827]/60">
+              SchemeSamjho organizes commonly needed information
+              into sections that are easier to scan and understand.
+            </p>
+
+          </div>
+
+          <div className="mt-10 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+
+            <FeatureCard
+              icon={<BookOpen size={21} />}
+              title="Simple explanations"
+              description="Understand the basic purpose and structure of a scheme without starting with complicated terminology."
+            />
+
+            <FeatureCard
+              icon={<CheckCircle2 size={21} />}
+              title="Eligibility"
+              description="Review the eligibility information presented for a scheme before checking the official rules."
+            />
+
+            <FeatureCard
+              icon={<FileText size={21} />}
+              title="Documents"
+              description="See the documents that may be relevant to the application process."
+            />
+
+            <FeatureCard
+              icon={<Target size={21} />}
+              title="Benefits"
+              description="Understand the benefits or support described for eligible beneficiaries."
+            />
+
+            <FeatureCard
+              icon={<Search size={21} />}
+              title="Scheme discovery"
+              description="Explore schemes through search, categories, filters and the preliminary eligibility tool."
+            />
+
+            <FeatureCard
+              icon={<ExternalLink size={21} />}
+              title="Official sources"
+              description="Use links to official sources to verify current information and application procedures."
+            />
+
+          </div>
+
+        </div>
+
+      </section>
+
+      {/* Trust / accuracy */}
+      <section className="bg-[#111827]">
+
+        <div className="mx-auto max-w-7xl px-6 py-12 sm:px-8 sm:py-16 lg:px-10">
+
+          <div className="grid gap-10 lg:grid-cols-[0.9fr_1.1fr] lg:items-center">
+
+            <div>
+
+              <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-[#16A34A]">
+                <ShieldCheck
+                  size={24}
+                  className="text-[#FFFFFF]"
+                />
               </div>
 
-              <ul className="mt-5 space-y-3 text-sm leading-6 text-green-900">
-                <li>✓ SchemeSamjho explains information.</li>
-                <li>✓ Official government websites publish official rules.</li>
-                <li>✓ Government authorities decide final eligibility.</li>
-                <li>✓ Applications should be made through authorised channels.</li>
-              </ul>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* =====================================================
-          ELIGIBILITY CHECKER
-      ====================================================== */}
-      <section className="mx-auto max-w-6xl px-6 py-14 md:py-16">
-        <div className="rounded-3xl bg-slate-900 p-8 md:p-12">
-          <div className="grid gap-8 lg:grid-cols-[1fr_auto] lg:items-center">
-            <div>
-              <p className="text-sm font-semibold text-blue-300">
-                Preliminary eligibility checker
-              </p>
-
-              <h2 className="mt-2 text-3xl font-bold text-white">
-                Find schemes that may match your profile.
+              <h2 className="mt-6 text-3xl font-extrabold tracking-tight text-[#FFFFFF] sm:text-4xl">
+                Official sources remain the authority
               </h2>
 
-              <p className="mt-4 max-w-2xl leading-7 text-slate-300">
-                Our checker uses the information available in SchemeSamjho's
-                scheme data to provide a preliminary match. It does not replace
-                official government eligibility verification.
+              <p className="mt-4 text-base leading-7 text-[#FFFFFF]/65">
+                SchemeSamjho simplifies information, but government
+                departments and official portals remain the
+                authoritative sources for current scheme rules,
+                eligibility decisions and application procedures.
               </p>
+
             </div>
 
-            <Link
-              href="/eligibility"
-              className="inline-flex items-center justify-center rounded-xl bg-white px-6 py-3 font-semibold text-slate-900 transition hover:bg-slate-100"
-            >
-              Check Eligibility →
-            </Link>
+            <div className="rounded-2xl border border-[#FFFFFF]/10 p-6 sm:p-8">
+
+              <TrustPoint>
+                Information can change when government rules or
+                procedures are updated.
+              </TrustPoint>
+
+              <TrustPoint>
+                Eligibility shown on SchemeSamjho is intended as
+                preliminary information.
+              </TrustPoint>
+
+              <TrustPoint>
+                An official authority makes the final eligibility
+                or application decision.
+              </TrustPoint>
+
+              <TrustPoint>
+                Always check the official source before applying.
+              </TrustPoint>
+
+            </div>
+
           </div>
+
         </div>
+
       </section>
 
-      {/* =====================================================
-          NOT GOVERNMENT
-      ====================================================== */}
-      <section className="border-t border-slate-200 bg-amber-50">
-        <div className="mx-auto max-w-4xl px-6 py-10 text-center">
-          <div className="text-2xl">⚠️</div>
+      {/* Official sources */}
+      <section>
 
-          <h2 className="mt-3 text-xl font-bold text-amber-950">
-            SchemeSamjho is not a government website
-          </h2>
+        <div className="mx-auto max-w-7xl px-6 py-12 sm:px-8 sm:py-16 lg:px-10">
 
-          <p className="mt-3 text-sm leading-6 text-amber-900">
-            SchemeSamjho is an independent informational platform. It is not
-            affiliated with, operated by, or an official representative of the
-            Government of India or any state government.
-          </p>
+          <div className="text-center">
 
-          <Link
-            href="/disclaimer"
-            className="mt-4 inline-flex text-sm font-semibold text-amber-900 underline underline-offset-4 hover:text-amber-950"
-          >
-            Read our full disclaimer →
-          </Link>
-        </div>
-      </section>
+            <p className="text-sm font-bold text-[#2563EB]">
+              Verify information
+            </p>
 
-      {/* =====================================================
-          CTA
-      ====================================================== */}
-      <section className="bg-white">
-        <div className="mx-auto max-w-6xl px-6 py-14 text-center">
-          <h2 className="text-3xl font-bold text-slate-900">
-            Ready to explore?
-          </h2>
+            <h2 className="mt-2 text-3xl font-extrabold text-[#111827] sm:text-4xl">
+              Use official government sources
+            </h2>
 
-          <p className="mx-auto mt-3 max-w-xl leading-7 text-slate-600">
-            Browse government schemes or check which ones may be relevant to
-            your profile.
-          </p>
+            <p className="mx-auto mt-4 max-w-2xl text-base leading-7 text-[#111827]/60">
+              Use official government portals to confirm the latest
+              information before making an application or decision.
+            </p>
 
-          <div className="mt-6 flex flex-col justify-center gap-3 sm:flex-row">
-            <Link
-              href="/schemes"
-              className="rounded-xl bg-blue-600 px-6 py-3 text-sm font-semibold text-white transition hover:bg-blue-700"
-            >
-              Explore Schemes
-            </Link>
-
-            <Link
-              href="/eligibility"
-              className="rounded-xl border border-slate-300 px-6 py-3 text-sm font-semibold text-slate-700 transition hover:border-blue-300 hover:text-blue-700"
-            >
-              Check Eligibility
-            </Link>
           </div>
+
+          <div className="mx-auto mt-10 grid max-w-4xl gap-5 md:grid-cols-2">
+
+            <OfficialSourceCard
+              title="myScheme"
+              description="Government scheme discovery and information portal."
+              href="https://www.myscheme.gov.in/"
+            />
+
+            <OfficialSourceCard
+              title="India.gov.in"
+              description="National portal containing information about government services and schemes."
+              href="https://www.india.gov.in/"
+            />
+
+          </div>
+
         </div>
+
       </section>
+
+      {/* CTA */}
+      <section className="bg-[#FFFFFF]">
+
+        <div className="mx-auto max-w-7xl px-6 pb-14 sm:px-8 sm:pb-16 lg:px-10">
+
+          <div className="rounded-2xl bg-[#111827] p-6 sm:p-8 lg:p-10">
+
+            <div className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
+
+              <div className="max-w-2xl">
+
+                <p className="text-2xl font-extrabold text-[#FFFFFF]">
+                  Ready to explore government schemes?
+                </p>
+
+                <p className="mt-2 text-sm leading-6 text-[#FFFFFF]/65">
+                  Browse schemes, read simple explainers or use the
+                  preliminary eligibility checker.
+                </p>
+
+              </div>
+
+              <div className="flex flex-col gap-3 sm:flex-row">
+
+                <Link
+                  href="/schemes"
+                  className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#2563EB] px-5 py-3 text-sm font-bold text-[#FFFFFF] transition hover:bg-[#FFFFFF] hover:text-[#111827]"
+                >
+                  Explore schemes
+                  <ArrowRight size={17} />
+                </Link>
+
+                <Link
+                  href="/eligibility"
+                  className="inline-flex items-center justify-center gap-2 rounded-xl border border-[#FFFFFF]/20 px-5 py-3 text-sm font-bold text-[#FFFFFF] transition hover:border-[#FFFFFF] hover:bg-[#FFFFFF] hover:text-[#111827]"
+                >
+                  Check eligibility
+                  <Search size={17} />
+                </Link>
+
+              </div>
+
+            </div>
+
+          </div>
+
+        </div>
+
+      </section>
+
     </main>
+  );
+}
+
+/* -------------------------------------------------------------------------- */
+/* Process Card                                                               */
+/* -------------------------------------------------------------------------- */
+
+function ProcessCard({
+  number,
+  icon,
+  title,
+  description,
+}: {
+  number: string;
+  icon: React.ReactNode;
+  title: string;
+  description: string;
+}) {
+  return (
+    <article className="rounded-2xl border border-[#111827]/10 bg-[#FFFFFF] p-6">
+
+      <div className="flex items-center justify-between">
+
+        <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-[#2563EB]/10 text-[#2563EB]">
+          {icon}
+        </div>
+
+        <span className="text-sm font-extrabold text-[#111827]/20">
+          {number}
+        </span>
+
+      </div>
+
+      <h3 className="mt-6 text-xl font-extrabold text-[#111827]">
+        {title}
+      </h3>
+
+      <p className="mt-3 text-sm leading-6 text-[#111827]/60">
+        {description}
+      </p>
+
+    </article>
+  );
+}
+
+/* -------------------------------------------------------------------------- */
+/* Feature Card                                                               */
+/* -------------------------------------------------------------------------- */
+
+function FeatureCard({
+  icon,
+  title,
+  description,
+}: {
+  icon: React.ReactNode;
+  title: string;
+  description: string;
+}) {
+  return (
+    <article className="rounded-2xl border border-[#111827]/10 p-6 transition hover:-translate-y-1 hover:border-[#2563EB]/30">
+
+      <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-[#2563EB]/10 text-[#2563EB]">
+        {icon}
+      </div>
+
+      <h3 className="mt-5 text-lg font-extrabold text-[#111827]">
+        {title}
+      </h3>
+
+      <p className="mt-2 text-sm leading-6 text-[#111827]/60">
+        {description}
+      </p>
+
+    </article>
+  );
+}
+
+/* -------------------------------------------------------------------------- */
+/* Trust Point                                                                */
+/* -------------------------------------------------------------------------- */
+
+function TrustPoint({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  return (
+    <div className="flex items-start gap-3 border-b border-[#FFFFFF]/10 py-4 first:pt-0 last:border-b-0 last:pb-0">
+
+      <CheckCircle2
+        size={19}
+        className="mt-0.5 shrink-0 text-[#16A34A]"
+      />
+
+      <p className="text-sm leading-6 text-[#FFFFFF]/70">
+        {children}
+      </p>
+
+    </div>
+  );
+}
+
+/* -------------------------------------------------------------------------- */
+/* Official Source Card                                                       */
+/* -------------------------------------------------------------------------- */
+
+function OfficialSourceCard({
+  title,
+  description,
+  href,
+}: {
+  title: string;
+  description: string;
+  href: string;
+}) {
+  return (
+    <div className="rounded-2xl border border-[#111827]/10 p-6">
+
+      <div className="flex items-start justify-between gap-4">
+
+        <div>
+
+          <h3 className="text-xl font-extrabold text-[#111827]">
+            {title}
+          </h3>
+
+          <p className="mt-2 text-sm leading-6 text-[#111827]/60">
+            {description}
+          </p>
+
+        </div>
+
+        <ExternalLink
+          size={20}
+          className="shrink-0 text-[#2563EB]"
+        />
+
+      </div>
+
+      <a
+        href={href}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="mt-5 inline-flex items-center gap-2 text-sm font-bold text-[#2563EB] hover:text-[#111827]"
+      >
+        Visit official website
+        <ExternalLink size={15} />
+      </a>
+
+    </div>
   );
 }

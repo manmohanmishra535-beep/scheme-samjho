@@ -5,13 +5,18 @@ import "./globals.css";
 
 import Navbar from "../Components/Navbar";
 import Footer from "../Components/Footer";
+import { SavedSchemesProvider } from "../lib/SavedSchemesContext";
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://schemesamjho.in"),
+  metadataBase: new URL(
+    "https://schemesamjho.in"
+  ),
 
   title: {
-    default: "SchemeSamjho — Government Schemes Explained Simply",
-    template: "%s | SchemeSamjho",
+    default:
+      "SchemeSamjho — Government Schemes Explained Simply",
+    template:
+      "%s | SchemeSamjho",
   },
 
   description:
@@ -30,8 +35,14 @@ export const metadata: Metadata = {
     "government benefits India",
   ],
 
-  authors: [{ name: "SchemeSamjho" }],
+  authors: [
+    {
+      name: "SchemeSamjho",
+    },
+  ],
+
   creator: "SchemeSamjho",
+
   publisher: "SchemeSamjho",
 
   robots: {
@@ -42,25 +53,35 @@ export const metadata: Metadata = {
   openGraph: {
     type: "website",
     siteName: "SchemeSamjho",
-    title: "SchemeSamjho — Government Schemes Explained Simply",
+
+    title:
+      "SchemeSamjho — Government Schemes Explained Simply",
+
     description:
       "Understand Indian government schemes, benefits, eligibility, documents and application information in simple language.",
+
     url: "https://schemesamjho.in",
+
     images: [
       {
         url: "/og-image.png",
         width: 1200,
         height: 630,
-        alt: "SchemeSamjho — Government Schemes Explained Simply",
+        alt:
+          "SchemeSamjho — Government Schemes Explained Simply",
       },
     ],
   },
 
   twitter: {
     card: "summary_large_image",
-    title: "SchemeSamjho — Government Schemes Explained Simply",
+
+    title:
+      "SchemeSamjho — Government Schemes Explained Simply",
+
     description:
       "Government schemes, eligibility, benefits and application information explained simply.",
+
     images: ["/og-image.png"],
   },
 
@@ -69,7 +90,8 @@ export const metadata: Metadata = {
   },
 
   alternates: {
-    canonical: "https://schemesamjho.in",
+    canonical:
+      "https://schemesamjho.in",
   },
 };
 
@@ -81,7 +103,10 @@ export default function RootLayout({
   return (
     <ClerkProvider>
       <html lang="en">
+
         <body className="min-h-screen bg-gray-50">
+
+          {/* Skip navigation */}
           <a
             href="#main-content"
             className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[9999] focus:rounded-lg focus:bg-white focus:px-4 focus:py-3 focus:text-sm focus:font-bold focus:text-gray-950 focus:shadow-xl"
@@ -89,12 +114,24 @@ export default function RootLayout({
             Skip to main content
           </a>
 
-          <Navbar />
+          {/* Saved Schemes Context */}
+          <SavedSchemesProvider>
 
-          <main id="main-content">{children}</main>
+            {/* Navbar */}
+            <Navbar />
 
-          <Footer />
+            {/* Main */}
+            <main id="main-content">
+              {children}
+            </main>
+
+            {/* Footer */}
+            <Footer />
+
+          </SavedSchemesProvider>
+
         </body>
+
       </html>
     </ClerkProvider>
   );

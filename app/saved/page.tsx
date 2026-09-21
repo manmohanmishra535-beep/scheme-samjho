@@ -1,509 +1,530 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
 import {
   ArrowRight,
   Bookmark,
-  Check,
   ExternalLink,
-  Heart,
-  Loader2,
+  FileText,
+  LogIn,
+  Search,
   ShieldCheck,
   Trash2,
 } from "lucide-react";
-import { SignInButton, useAuth, useUser } from "@clerk/nextjs";
+import { Show } from "@clerk/nextjs";
 
 import { schemes } from "../../data/schemes";
-import { createClerkSupabaseClient } from "../../lib/supabase";
+import { useSavedSchemes } from "../../lib/useSavedSchemes";
 
-export default function SavedPage() {
-  const { isLoaded, isSignedIn, getToken } = useAuth();
-  const { user } = useUser();
-
-  const [savedSlugs, setSavedSlugs] = useState<string[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [removing, setRemoving] = useState<string | null>(null);
-  const [error, setError] = useState("");
-
-  useEffect(() => {
-    async function loadSavedSchemes() {
-      if (!isLoaded) return;
-
-      if (!isSignedIn || !user) {
-        setSavedSlugs([]);
-        setLoading(false);
-        return;
-      }
-
-      try {
-        setLoading(true);
-        setError("");
-
-        const supabase = createClerkSupabaseClient(getToken);
-
-        const { data, error } = await supabase
-          .from("saved_schemes")
-          .select("scheme_slug, created_at")
-          .eq("user_id", user.id)
-          .order("created_at", { ascending: false });
-
-        if (error) {
-          console.error("Error loading saved schemes:", error);
-          setError("Unable to load your saved schemes.");
-          return;
-        }
-
-        setSavedSlugs(
-          (data ?? []).map((item) => item.scheme_slug)
-        );
-      } catch (err) {
-        console.error("Error loading saved schemes:", err);
-        setError("Something went wrong while loading your saved schemes.");
-      } finally {
-        setLoading(false);
-      }
-    }
-
-    loadSavedSchemes();
-  }, [isLoaded, isSignedIn, user, getToken]);
-
-  async function removeScheme(slug: string) {
-    if (!user || removing) return;
-
-    try {
-      setRemoving(slug);
-
-      const supabase = createClerkSupabaseClient(getToken);
-
-      const { error } = await supabase
-        .from("saved_schemes")
-        .delete()
-        .eq("user_id", user.id)
-        .eq("scheme_slug", slug);
-
-      if (error) {
-        console.error("Error removing saved scheme:", error);
-        setError("Unable to remove this saved scheme.");
-        return;
-      }
-
-      setSavedSlugs((current) =>
-        current.filter((item) => item !== slug)
-      );
-    } catch (err) {
-      console.error("Error removing saved scheme:", err);
-      setError("Something went wrong while removing the scheme.");
-    } finally {
-      setRemoving(null);
-    }
-  }
+export default function SavedSchemesPage() {
+  const {
+    savedSlugs,
+    loading,
+    saving,
+    error,
+    removeScheme,
+  } = useSavedSchemes();
 
   const savedSchemes = savedSlugs
     .map((slug) =>
-      schemes.find((scheme) => scheme.slug === slug)
+      schemes.find(
+        (scheme) => scheme.slug === slug
+      )
     )
-    .filter((scheme) => scheme !== undefined);
-
-  /*
-   * Loading state
-   */
-  if (!isLoaded || loading) {
-    return (
-      <main className="min-h-screen bg-gray-50">
-        <section className="mx-auto max-w-6xl px-5 py-20 sm:px-6 lg:px-8">
-          <div className="flex min-h-[360px] items-center justify-center rounded-3xl border border-gray-200 bg-white shadow-sm">
-            <div className="text-center">
-              <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-blue-50 text-blue-600">
-                <Loader2
-                  size={26}
-                  className="animate-spin"
-                />
-              </div>
-
-              <p className="mt-5 text-sm font-medium text-gray-600">
-                Loading your saved schemes...
-              </p>
-            </div>
-          </div>
-        </section>
-      </main>
+    .filter(
+      (
+        scheme
+      ): scheme is (typeof schemes)[number] =>
+        scheme !== undefined
     );
-  }
 
-  /*
-   * Signed-out state
-   */
-  if (!isSignedIn) {
-    return (
-      <main className="min-h-screen bg-gray-50">
-        <section className="relative overflow-hidden bg-[#07111f] text-white">
-          <div className="absolute -left-24 top-10 h-72 w-72 rounded-full bg-blue-500/20 blur-3xl" />
+  return (
+    <main className="min-h-screen bg-[#FFFFFF]">
 
-          <div className="relative mx-auto max-w-6xl px-5 py-20 text-center sm:px-6 lg:px-8">
-            <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-white/10">
-              <Heart
-                size={30}
-                className="text-blue-300"
-              />
+      {/* Hero */}
+      <section className="bg-[#111827]">
+        <div className="mx-auto max-w-7xl px-6 py-14 sm:px-8 sm:py-16 lg:px-10 lg:py-20">
+          <div className="max-w-3xl">
+
+            <div className="inline-flex items-center gap-2 rounded-full border border-[#FFFFFF]/20 px-4 py-2 text-sm font-semibold text-[#FFFFFF]">
+              <Bookmark size={16} />
+              Your saved schemes
             </div>
 
-            <h1 className="mt-7 text-4xl font-black tracking-tight sm:text-5xl">
-              Your saved schemes
+            <h1 className="mt-6 text-4xl font-extrabold leading-[1.06] tracking-tight text-[#FFFFFF] sm:text-5xl lg:text-6xl">
+              Keep useful schemes
+              <br />
+              in one place.
             </h1>
 
-            <p className="mx-auto mt-5 max-w-xl text-base leading-7 text-gray-300">
-              Save useful government schemes and keep them organized
-              in one place. Sign in to access your saved schemes
-              whenever you need them.
+            <p className="mt-6 max-w-2xl text-base leading-7 text-[#FFFFFF]/75 sm:text-lg">
+              Save schemes you want to review later and quickly
+              return to their benefits, eligibility and application
+              information.
             </p>
 
-            <SignInButton mode="modal">
-              <button className="mt-8 inline-flex items-center gap-2 rounded-xl bg-white px-6 py-3.5 text-sm font-bold text-gray-950 transition hover:bg-gray-100">
-                Sign In to Continue
-                <ArrowRight size={17} />
-              </button>
-            </SignInButton>
           </div>
-        </section>
+        </div>
+      </section>
 
-        <section className="mx-auto max-w-6xl px-5 py-12 sm:px-6 lg:px-8">
-          <div className="rounded-3xl border border-gray-200 bg-white p-7 text-center shadow-sm">
-            <Bookmark
-              size={28}
-              className="mx-auto text-blue-600"
+      {/* Content */}
+      <section>
+        <div className="mx-auto max-w-7xl px-6 py-12 sm:px-8 sm:py-16 lg:px-10">
+
+          <Show when="signed-out">
+            <SignedOutState />
+          </Show>
+
+          <Show when="signed-in">
+            <SignedInContent
+              savedSchemes={savedSchemes}
+              savedCount={savedSlugs.length}
+              loading={loading}
+              saving={saving}
+              error={error}
+              onRemove={removeScheme}
+            />
+          </Show>
+
+        </div>
+      </section>
+
+    </main>
+  );
+}
+
+/* -------------------------------------------------------------------------- */
+/* Signed Out                                                                 */
+/* -------------------------------------------------------------------------- */
+
+function SignedOutState() {
+  return (
+    <div className="mx-auto max-w-2xl rounded-3xl border border-[#111827]/10 bg-[#FFFFFF] px-6 py-12 text-center sm:px-10">
+
+      <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-[#2563EB]/10">
+        <LogIn
+          size={28}
+          className="text-[#2563EB]"
+        />
+      </div>
+
+      <h2 className="mt-6 text-2xl font-extrabold text-[#111827] sm:text-3xl">
+        Sign in to save schemes
+      </h2>
+
+      <p className="mx-auto mt-3 max-w-lg text-sm leading-7 text-[#111827]/60">
+        Create an account or sign in to keep your favourite
+        government schemes available from your dashboard.
+      </p>
+
+      <div className="mt-7 flex flex-col justify-center gap-3 sm:flex-row">
+
+        <Link
+          href="/sign-in"
+          className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#2563EB] px-5 py-3 text-sm font-bold text-[#FFFFFF] transition hover:bg-[#111827]"
+        >
+          Sign in
+          <ArrowRight size={17} />
+        </Link>
+
+        <Link
+          href="/schemes"
+          className="inline-flex items-center justify-center gap-2 rounded-xl border border-[#111827]/15 px-5 py-3 text-sm font-bold text-[#111827] transition hover:border-[#2563EB] hover:text-[#2563EB]"
+        >
+          Browse schemes
+          <Search size={17} />
+        </Link>
+
+      </div>
+
+    </div>
+  );
+}
+
+/* -------------------------------------------------------------------------- */
+/* Signed In                                                                  */
+/* -------------------------------------------------------------------------- */
+
+function SignedInContent({
+  savedSchemes,
+  savedCount,
+  loading,
+  saving,
+  error,
+  onRemove,
+}: {
+  savedSchemes: typeof schemes;
+  savedCount: number;
+  loading: boolean;
+  saving: string | null;
+  error: string;
+  onRemove: (
+    slug: string
+  ) => Promise<boolean>;
+}) {
+  return (
+    <>
+      {/* Header */}
+      <div className="flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
+
+        <div>
+
+          <p className="text-sm font-bold text-[#2563EB]">
+            My collection
+          </p>
+
+          <h2 className="mt-2 text-3xl font-extrabold tracking-tight text-[#111827] sm:text-4xl">
+            Saved schemes
+          </h2>
+
+          <p className="mt-3 text-sm leading-6 text-[#111827]/60">
+            {loading
+              ? "Loading your saved schemes..."
+              : savedCount === 0
+              ? "You have not saved any schemes yet."
+              : `${savedCount} ${
+                  savedCount === 1
+                    ? "scheme"
+                    : "schemes"
+                } saved`}
+          </p>
+
+        </div>
+
+        <Link
+          href="/schemes"
+          className="inline-flex items-center gap-2 text-sm font-bold text-[#2563EB] transition hover:text-[#111827]"
+        >
+          Find more schemes
+          <ArrowRight size={17} />
+        </Link>
+
+      </div>
+
+      {/* Error */}
+      {error && (
+        <div className="mt-6 rounded-2xl border border-[#111827]/10 bg-[#111827]/5 p-5">
+
+          <div className="flex items-start gap-3">
+
+            <ShieldCheck
+              size={20}
+              className="mt-0.5 shrink-0 text-[#16A34A]"
             />
 
-            <h2 className="mt-4 text-xl font-bold text-gray-950">
-              Haven't found a scheme yet?
-            </h2>
-
-            <p className="mt-2 text-sm text-gray-600">
-              Browse government schemes explained in simple language.
-            </p>
-
-            <Link
-              href="/schemes"
-              className="mt-5 inline-flex items-center gap-2 rounded-xl bg-gray-950 px-5 py-3 text-sm font-semibold text-white hover:bg-gray-800"
-            >
-              Browse Schemes
-              <ArrowRight size={16} />
-            </Link>
-          </div>
-        </section>
-      </main>
-    );
-  }
-
-  /*
-   * Error state
-   */
-  if (error) {
-    return (
-      <main className="min-h-screen bg-gray-50">
-        <section className="mx-auto max-w-3xl px-5 py-20 sm:px-6 lg:px-8">
-          <div className="rounded-3xl border border-red-200 bg-red-50 p-8 text-center">
-            <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-red-100 text-red-600">
-              !
-            </div>
-
-            <h1 className="mt-5 text-2xl font-black text-red-900">
-              Something went wrong
-            </h1>
-
-            <p className="mt-2 text-sm text-red-700">
+            <p className="text-sm leading-6 text-[#111827]/70">
               {error}
             </p>
 
-            <button
-              onClick={() => window.location.reload()}
-              className="mt-6 rounded-xl bg-red-600 px-5 py-3 text-sm font-semibold text-white transition hover:bg-red-700"
-            >
-              Try Again
-            </button>
           </div>
-        </section>
-      </main>
-    );
-  }
 
-  /*
-   * Main page
-   */
-  return (
-    <main className="min-h-screen bg-gray-50">
-      {/* HERO */}
-      <section className="relative overflow-hidden bg-[#07111f] text-white">
-        <div className="absolute -left-24 top-0 h-80 w-80 rounded-full bg-blue-500/20 blur-3xl" />
-
-        <div className="absolute right-0 top-0 h-96 w-96 rounded-full bg-violet-500/10 blur-3xl" />
-
-        <div className="relative mx-auto max-w-7xl px-5 py-14 sm:px-6 lg:px-8 lg:py-18">
-          <div className="flex flex-col gap-8 md:flex-row md:items-end md:justify-between">
-            <div>
-              <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-4 py-2 text-sm text-blue-200">
-                <Bookmark size={15} />
-                My SchemeSamjho
-              </div>
-
-              <h1 className="text-4xl font-black tracking-tight sm:text-5xl">
-                Your saved
-                <span className="block text-blue-400">
-                  government schemes.
-                </span>
-              </h1>
-
-              <p className="mt-5 max-w-2xl text-base leading-7 text-gray-300">
-                Keep the schemes that matter to you in one place.
-                Your saved list is linked to your account, so you can
-                access it again whenever you sign in.
-              </p>
-            </div>
-
-            <div className="rounded-3xl border border-white/10 bg-white/5 px-6 py-5 backdrop-blur">
-              <p className="text-xs font-medium text-gray-400">
-                Saved schemes
-              </p>
-
-              <p className="mt-1 text-4xl font-black">
-                {savedSchemes.length}
-              </p>
-
-              <p className="mt-1 text-xs text-gray-400">
-                {savedSchemes.length === 1
-                  ? "scheme in your list"
-                  : "schemes in your list"}
-              </p>
-            </div>
-          </div>
         </div>
-      </section>
+      )}
 
-      {/* CONTENT */}
-      <section className="mx-auto max-w-7xl px-5 py-10 sm:px-6 lg:px-8">
-        {savedSchemes.length === 0 ? (
-          <div className="overflow-hidden rounded-3xl border border-gray-200 bg-white shadow-sm">
-            <div className="mx-auto max-w-2xl px-6 py-16 text-center sm:px-10">
-              <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-3xl bg-blue-50 text-blue-600">
-                <Heart size={34} />
-              </div>
+      {/* Loading */}
+      {loading && <LoadingState />}
 
-              <h2 className="mt-7 text-3xl font-black text-gray-950">
-                Your saved list is empty
+      {/* Empty */}
+      {!loading && savedSchemes.length === 0 && (
+        <EmptyState />
+      )}
+
+      {/* Cards */}
+      {!loading && savedSchemes.length > 0 && (
+        <div className="mt-10 grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+
+          {savedSchemes.map((scheme) => (
+            <SavedSchemeCard
+              key={scheme.slug}
+              scheme={scheme}
+              removing={saving === scheme.slug}
+              onRemove={onRemove}
+            />
+          ))}
+
+        </div>
+      )}
+
+      {/* Trust information */}
+      {!loading && savedSchemes.length > 0 && (
+        <div className="mt-12 rounded-2xl bg-[#111827] p-6 sm:p-8">
+
+          <div className="flex flex-col gap-5 sm:flex-row sm:items-start">
+
+            <ShieldCheck
+              size={24}
+              className="shrink-0 text-[#16A34A]"
+            />
+
+            <div>
+
+              <h2 className="text-xl font-extrabold text-[#FFFFFF]">
+                Keep official information in mind
               </h2>
 
-              <p className="mt-3 text-sm leading-6 text-gray-600">
-                When you find a government scheme that looks useful,
-                click <strong>Save Scheme</strong>. It will appear here
-                automatically.
+              <p className="mt-2 max-w-3xl text-sm leading-6 text-[#FFFFFF]/65">
+                Saved schemes are a convenience feature.
+                Before applying, always verify the latest
+                eligibility, documents, benefits and application
+                process through the official government source.
               </p>
 
-              <Link
-                href="/schemes"
-                className="mt-7 inline-flex items-center gap-2 rounded-xl bg-gray-950 px-6 py-3.5 text-sm font-bold text-white transition hover:bg-gray-800"
-              >
-                Explore Schemes
-                <ArrowRight size={17} />
-              </Link>
             </div>
 
-            <div className="border-t border-gray-100 bg-gray-50 px-6 py-7">
-              <div className="mx-auto flex max-w-2xl flex-col gap-4 text-sm text-gray-600 sm:flex-row sm:items-center sm:justify-center">
-                <div className="flex items-center justify-center gap-2">
-                  <Check
-                    size={17}
-                    className="text-emerald-600"
-                  />
-                  Saved to your account
-                </div>
-
-                <div className="flex items-center justify-center gap-2">
-                  <ShieldCheck
-                    size={17}
-                    className="text-blue-600"
-                  />
-                  No localStorage
-                </div>
-              </div>
-            </div>
-          </div>
-        ) : (
-          <>
-            {/* TOP BAR */}
-            <div className="mb-7 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-              <div>
-                <p className="text-sm font-semibold text-blue-600">
-                  Your collection
-                </p>
-
-                <h2 className="mt-1 text-2xl font-black text-gray-950">
-                  Saved schemes
-                </h2>
-              </div>
-
-              <Link
-                href="/schemes"
-                className="inline-flex items-center justify-center gap-2 rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm font-semibold text-gray-700 transition hover:bg-gray-50"
-              >
-                Find More Schemes
-                <ArrowRight size={16} />
-              </Link>
-            </div>
-
-            {/* CARDS */}
-            <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
-              {savedSchemes.map((scheme) => (
-                <article
-                  key={scheme.slug}
-                  className="group flex flex-col overflow-hidden rounded-3xl border border-gray-200 bg-white shadow-sm transition duration-300 hover:-translate-y-1 hover:shadow-xl"
-                >
-                  {/* ACCENT */}
-                  <div className="h-1.5 bg-gradient-to-r from-blue-600 via-violet-500 to-emerald-500" />
-
-                  <div className="flex flex-1 flex-col p-6">
-                    {/* TOP */}
-                    <div className="flex items-start justify-between gap-3">
-                      <span className="rounded-full bg-blue-50 px-3 py-1.5 text-xs font-bold text-blue-700">
-                        {scheme.category}
-                      </span>
-
-                      <button
-                        type="button"
-                        onClick={() => removeScheme(scheme.slug)}
-                        disabled={removing === scheme.slug}
-                        title="Remove from saved schemes"
-                        className="flex h-9 w-9 items-center justify-center rounded-xl border border-gray-200 text-gray-500 transition hover:border-red-200 hover:bg-red-50 hover:text-red-600 disabled:cursor-not-allowed disabled:opacity-50"
-                      >
-                        {removing === scheme.slug ? (
-                          <Loader2
-                            size={16}
-                            className="animate-spin"
-                          />
-                        ) : (
-                          <Trash2 size={16} />
-                        )}
-                      </button>
-                    </div>
-
-                    {/* TITLE */}
-                    <h3 className="mt-5 text-xl font-black leading-tight text-gray-950">
-                      {scheme.name}
-                    </h3>
-
-                    <p className="mt-3 flex-1 text-sm leading-6 text-gray-600">
-                      {scheme.shortDescription}
-                    </p>
-
-                    {/* FACTS */}
-                    <div className="mt-5 grid grid-cols-2 gap-3">
-                      <div className="rounded-2xl bg-gray-50 p-4">
-                        <p className="text-[11px] font-medium uppercase tracking-wide text-gray-400">
-                          Age
-                        </p>
-
-                        <p className="mt-1.5 text-sm font-bold text-gray-900">
-                          {scheme.minAge !== undefined
-                            ? scheme.maxAge !== undefined
-                              ? `${scheme.minAge}–${scheme.maxAge} years`
-                              : `${scheme.minAge}+ years`
-                            : scheme.maxAge !== undefined
-                              ? `Up to ${scheme.maxAge} years`
-                              : "See rules"}
-                        </p>
-                      </div>
-
-                      <div className="rounded-2xl bg-gray-50 p-4">
-                        <p className="text-[11px] font-medium uppercase tracking-wide text-gray-400">
-                          Income
-                        </p>
-
-                        <p className="mt-1.5 text-sm font-bold text-gray-900">
-                          {scheme.maxIncome !== undefined
-                            ? `₹${scheme.maxIncome.toLocaleString(
-                                "en-IN"
-                              )}/yr`
-                            : "See rules"}
-                        </p>
-                      </div>
-                    </div>
-
-                    {/* SAVED */}
-                    <div className="mt-4 flex items-center gap-2 text-xs font-medium text-emerald-700">
-                      <Heart
-                        size={14}
-                        className="fill-current"
-                      />
-                      Saved to your account
-                    </div>
-
-                    {/* ACTIONS */}
-                    <div className="mt-5 grid grid-cols-2 gap-2">
-                      <Link
-                        href={`/schemes/${scheme.slug}`}
-                        className="inline-flex items-center justify-center gap-2 rounded-xl bg-gray-950 px-4 py-3 text-sm font-bold text-white transition hover:bg-gray-800"
-                      >
-                        View Scheme
-                        <ArrowRight size={15} />
-                      </Link>
-
-                      <Link
-                        href={`/explainers/${scheme.slug}`}
-                        className="inline-flex items-center justify-center rounded-xl border border-gray-200 px-4 py-3 text-sm font-semibold text-gray-700 transition hover:bg-gray-50"
-                      >
-                        Explainer
-                      </Link>
-                    </div>
-
-                    {/* OFFICIAL SOURCE */}
-                    <a
-                      href={scheme.officialUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="mt-3 inline-flex items-center justify-center gap-1.5 text-xs font-semibold text-gray-500 transition hover:text-blue-600"
-                    >
-                      Official source
-                      <ExternalLink size={12} />
-                    </a>
-                  </div>
-                </article>
-              ))}
-            </div>
-          </>
-        )}
-      </section>
-
-      {/* TRUST PANEL */}
-      <section className="border-t border-gray-200 bg-white">
-        <div className="mx-auto max-w-7xl px-5 py-10 sm:px-6 lg:px-8">
-          <div className="rounded-3xl bg-gray-50 p-6 sm:p-8">
-            <div className="flex flex-col gap-5 md:flex-row md:items-center">
-              <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-blue-100 text-blue-700">
-                <ShieldCheck size={24} />
-              </div>
-
-              <div>
-                <h3 className="font-bold text-gray-950">
-                  Your saved schemes are account-based
-                </h3>
-
-                <p className="mt-1 text-sm leading-6 text-gray-600">
-                  SchemeSamjho stores your saved scheme references in
-                  your account database rather than relying on browser
-                  local storage.
-                </p>
-              </div>
-            </div>
           </div>
 
-          <p className="mt-8 text-center text-xs leading-5 text-gray-500">
-            SchemeSamjho is an independent informational platform.
-            Saved schemes are for your convenience and do not indicate
-            that you are officially eligible for any scheme. Always
-            verify the latest requirements with the relevant government
-            source.
-          </p>
         </div>
-      </section>
-    </main>
+      )}
+
+    </>
   );
+}
+
+/* -------------------------------------------------------------------------- */
+/* Saved Card                                                                 */
+/* -------------------------------------------------------------------------- */
+
+function SavedSchemeCard({
+  scheme,
+  removing,
+  onRemove,
+}: {
+  scheme: (typeof schemes)[number];
+  removing: boolean;
+  onRemove: (
+    slug: string
+  ) => Promise<boolean>;
+}) {
+  return (
+    <article className="group flex h-full flex-col rounded-2xl border border-[#111827]/10 bg-[#FFFFFF] p-6 transition hover:-translate-y-1 hover:border-[#2563EB]/30">
+
+      {/* Top */}
+      <div className="flex items-start justify-between gap-4">
+
+        <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-[#2563EB]/10">
+          <Bookmark
+            size={21}
+            className="text-[#2563EB]"
+            fill="currentColor"
+          />
+        </div>
+
+        <button
+          type="button"
+          onClick={() => {
+            void onRemove(scheme.slug);
+          }}
+          disabled={removing}
+          aria-label={`Remove ${scheme.name} from saved schemes`}
+          className="flex h-10 w-10 items-center justify-center rounded-xl text-[#111827]/40 transition hover:bg-[#111827] hover:text-[#FFFFFF] disabled:cursor-not-allowed disabled:opacity-40"
+        >
+          <Trash2 size={18} />
+        </button>
+
+      </div>
+
+      {/* Content */}
+      <div className="mt-5">
+
+        <p className="text-xs font-bold uppercase tracking-wide text-[#16A34A]">
+          {scheme.category}
+        </p>
+
+        <h3 className="mt-2 text-xl font-extrabold leading-7 text-[#111827]">
+          {scheme.name}
+        </h3>
+
+        <p className="mt-3 text-sm leading-6 text-[#111827]/60">
+          {scheme.shortDescription}
+        </p>
+
+      </div>
+
+      {/* Quick facts */}
+      <div className="mt-6 grid grid-cols-2 gap-3">
+
+        <QuickFact
+          label="Age"
+          value={formatAge(
+            scheme.minAge,
+            scheme.maxAge
+          )}
+        />
+
+        <QuickFact
+          label="Income"
+          value={formatIncome(
+            scheme.maxIncome
+          )}
+        />
+
+      </div>
+
+      {/* Actions */}
+      <div className="mt-auto flex flex-col gap-2 pt-6">
+
+        <Link
+          href={`/schemes/${scheme.slug}`}
+          className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#2563EB] px-4 py-3 text-sm font-bold text-[#FFFFFF] transition hover:bg-[#111827]"
+        >
+          View scheme
+          <ArrowRight size={16} />
+        </Link>
+
+        <Link
+          href={`/explainers/${scheme.slug}`}
+          className="inline-flex items-center justify-center gap-2 rounded-xl border border-[#111827]/10 px-4 py-3 text-sm font-bold text-[#111827] transition hover:border-[#2563EB] hover:text-[#2563EB]"
+        >
+          Read explainer
+          <FileText size={16} />
+        </Link>
+
+        <a
+          href={scheme.officialUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2 text-xs font-bold text-[#111827]/55 transition hover:text-[#2563EB]"
+        >
+          Official source
+          <ExternalLink size={14} />
+        </a>
+
+      </div>
+
+    </article>
+  );
+}
+
+/* -------------------------------------------------------------------------- */
+/* Quick Fact                                                                 */
+/* -------------------------------------------------------------------------- */
+
+function QuickFact({
+  label,
+  value,
+}: {
+  label: string;
+  value: string;
+}) {
+  return (
+    <div className="rounded-xl border border-[#111827]/10 p-3">
+
+      <p className="text-[11px] font-bold uppercase tracking-wide text-[#111827]/40">
+        {label}
+      </p>
+
+      <p className="mt-1 text-xs font-bold leading-5 text-[#111827]">
+        {value}
+      </p>
+
+    </div>
+  );
+}
+
+/* -------------------------------------------------------------------------- */
+/* Loading                                                                    */
+/* -------------------------------------------------------------------------- */
+
+function LoadingState() {
+  return (
+    <div className="mt-10 grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+
+      {[1, 2, 3].map((item) => (
+        <div
+          key={item}
+          className="rounded-2xl border border-[#111827]/10 p-6"
+        >
+
+          <div className="h-11 w-11 animate-pulse rounded-xl bg-[#111827]/10" />
+
+          <div className="mt-5 h-3 w-20 animate-pulse rounded bg-[#111827]/10" />
+
+          <div className="mt-3 h-6 w-3/4 animate-pulse rounded bg-[#111827]/10" />
+
+          <div className="mt-3 h-4 w-full animate-pulse rounded bg-[#111827]/10" />
+
+          <div className="mt-2 h-4 w-5/6 animate-pulse rounded bg-[#111827]/10" />
+
+          <div className="mt-6 grid grid-cols-2 gap-3">
+
+            <div className="h-16 animate-pulse rounded-xl bg-[#111827]/10" />
+
+            <div className="h-16 animate-pulse rounded-xl bg-[#111827]/10" />
+
+          </div>
+
+        </div>
+      ))}
+
+    </div>
+  );
+}
+
+/* -------------------------------------------------------------------------- */
+/* Empty State                                                                */
+/* -------------------------------------------------------------------------- */
+
+function EmptyState() {
+  return (
+    <div className="mt-10 rounded-3xl border border-dashed border-[#111827]/15 px-6 py-16 text-center">
+
+      <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-[#2563EB]/10">
+        <Bookmark
+          size={28}
+          className="text-[#2563EB]"
+        />
+      </div>
+
+      <h2 className="mt-6 text-2xl font-extrabold text-[#111827] sm:text-3xl">
+        No saved schemes yet
+      </h2>
+
+      <p className="mx-auto mt-3 max-w-xl text-sm leading-7 text-[#111827]/60">
+        When you find a scheme that you want to review later,
+        save it and it will appear here.
+      </p>
+
+      <Link
+        href="/schemes"
+        className="mt-7 inline-flex items-center justify-center gap-2 rounded-xl bg-[#2563EB] px-5 py-3 text-sm font-bold text-[#FFFFFF] transition hover:bg-[#111827]"
+      >
+        Explore schemes
+        <ArrowRight size={17} />
+      </Link>
+
+    </div>
+  );
+}
+
+/* -------------------------------------------------------------------------- */
+/* Formatting                                                                 */
+/* -------------------------------------------------------------------------- */
+
+function formatAge(
+  minAge: number | null | undefined,
+  maxAge: number | null | undefined
+): string {
+  if (minAge != null && maxAge != null) {
+    return `${minAge}–${maxAge} years`;
+  }
+
+  if (minAge != null) {
+    return `${minAge}+ years`;
+  }
+
+  if (maxAge != null) {
+    return `Up to ${maxAge} years`;
+  }
+
+  return "See rules";
+}
+
+function formatIncome(
+  maxIncome: number | null | undefined
+): string {
+  if (maxIncome == null) {
+    return "See rules";
+  }
+
+  return `₹${maxIncome.toLocaleString("en-IN")}`;
 }

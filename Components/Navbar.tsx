@@ -1,466 +1,409 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
 import {
+  ChevronDown,
   Menu,
   X,
-  ChevronDown,
 } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
-import {
-  UserButton,
-  Show,
-  SignInButton,
-} from "@clerk/nextjs";
+import { Show } from "@clerk/nextjs";
 
-import { useSavedSchemes } from "../lib/useSavedSchemes";
-
-const mainLinks = [
-  {
-    href: "/",
-    label: "Home",
-  },
-  {
-    href: "/schemes",
-    label: "Schemes",
-  },
-  {
-    href: "/eligibility",
-    label: "Check Eligibility",
-  },
-  {
-    href: "/saved",
-    label: "Saved",
-  },
-];
-
-const moreLinks = [
-  {
-    href: "/compare",
-    label: "Compare",
-  },
-  {
-    href: "/explainers",
-    label: "Explainers",
-  },
-  {
-    href: "/about",
-    label: "About",
-  },
-  {
-    href: "/contact",
-    label: "Contact",
-  },
-];
+import AuthModal from "./AuthModal";
+import UserMenu from "./UserMenu";
 
 export default function Navbar() {
-  const pathname = usePathname();
+  const [moreOpen, setMoreOpen] =
+    useState(false);
 
   const [mobileOpen, setMobileOpen] =
     useState(false);
 
-  const [moreOpen, setMoreOpen] =
+  const [authOpen, setAuthOpen] =
     useState(false);
 
-  const moreRef =
-    useRef<HTMLDivElement>(null);
+  const navItem =
+    "text-[16px] font-semibold text-[#111827] transition hover:text-[#2563EB]";
 
-  const {
-    savedCount,
-    loading: savedLoading,
-  } = useSavedSchemes();
-
-  /*
-   * Close More dropdown when clicking outside.
-   */
-  useEffect(() => {
-    function handleClickOutside(
-      event: MouseEvent
-    ) {
-      if (
-        moreRef.current &&
-        !moreRef.current.contains(
-          event.target as Node
-        )
-      ) {
-        setMoreOpen(false);
-      }
-    }
-
-    document.addEventListener(
-      "mousedown",
-      handleClickOutside
-    );
-
-    return () => {
-      document.removeEventListener(
-        "mousedown",
-        handleClickOutside
-      );
-    };
-  }, []);
-
-  /*
-   * Close mobile menu when route changes.
-   */
-  useEffect(() => {
-    setMobileOpen(false);
+  function closeMenus() {
     setMoreOpen(false);
-  }, [pathname]);
+    setMobileOpen(false);
+  }
 
-  const isActive = (href: string) => {
-    if (href === "/") {
-      return pathname === "/";
-    }
-
-    return (
-      pathname === href ||
-      pathname.startsWith(`${href}/`)
-    );
-  };
-
-  const moreActive = moreLinks.some(
-    (link) => isActive(link.href)
-  );
+  function openSignIn() {
+    closeMenus();
+    setAuthOpen(true);
+  }
 
   return (
-    <header className="sticky top-0 z-50 border-b border-gray-200 bg-white/95 backdrop-blur">
-      <nav className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <div className="flex h-20 items-center justify-between">
+    <>
+      <header className="sticky top-0 z-50 border-b border-[#111827]/10 bg-[#FFFFFF]">
 
-          {/* =================================================
-              LOGO
-          ================================================== */}
+        <div className="mx-auto flex h-[80px] max-w-[1400px] items-center justify-between px-6 lg:px-10">
 
+          {/* Logo */}
           <Link
             href="/"
-            className="flex shrink-0 items-center gap-3"
+            onClick={closeMenus}
+            className="flex items-center gap-3"
+            aria-label="SchemeSamjho home"
           >
-            <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-gray-950 text-lg font-black text-white">
+
+            <div className="flex h-13 w-13 items-center justify-center rounded-2xl bg-[#2563EB] text-2xl font-extrabold text-[#FFFFFF]">
               S
             </div>
 
-            <div className="hidden sm:block">
-              <p className="text-lg font-black tracking-tight text-gray-950">
-                SchemeSamjho
-              </p>
+            <div>
 
-              <p className="text-xs font-medium text-gray-500">
-                Government schemes, simply explained
-              </p>
+              <div className="text-[22px] font-extrabold tracking-tight text-[#111827]">
+                Scheme
+                <span className="text-[#2563EB]">
+                  Samjho
+                </span>
+              </div>
+
+              <div className="text-[12px] font-semibold tracking-wide text-[#111827]/60">
+                GOVERNMENT SCHEMES, SIMPLIFIED
+              </div>
+
             </div>
+
           </Link>
 
-          {/* =================================================
-              DESKTOP NAVIGATION
-          ================================================== */}
+          {/* Desktop Navigation */}
+          <nav
+            className="hidden items-center gap-9 lg:flex"
+            aria-label="Main navigation"
+          >
 
-          <div className="hidden items-center gap-1 lg:flex">
-
-            {mainLinks.map((link) => {
-              const active =
-                isActive(link.href);
-
-              return (
-                <Link
-                  key={link.href}
-                  href={link.href}
-                  className={`relative rounded-xl px-4 py-2.5 text-sm font-semibold transition ${
-                    active
-                      ? "bg-gray-50 text-gray-950"
-                      : "text-gray-600 hover:bg-gray-50 hover:text-gray-950"
-                  }`}
-                >
-                  <span className="flex items-center gap-1.5">
-                    {link.label}
-
-                    {/* SAVED COUNT */}
-
-                    {link.href ===
-                      "/saved" &&
-                      !savedLoading && (
-                        <span
-                          className={`inline-flex min-w-5 items-center justify-center rounded-full px-1.5 py-0.5 text-[10px] font-black ${
-                            active
-                              ? "bg-blue-100 text-blue-700"
-                              : "bg-blue-50 text-blue-600"
-                          }`}
-                        >
-                          {savedCount}
-                        </span>
-                      )}
-                  </span>
-                </Link>
-              );
-            })}
-
-            {/* =================================================
-                MORE DROPDOWN
-            ================================================== */}
-
-            <div
-              ref={moreRef}
-              className="relative"
+            <Link
+              href="/schemes"
+              className={navItem}
             >
+              Schemes
+            </Link>
+
+            <Link
+              href="/eligibility"
+              className={navItem}
+            >
+              Eligibility
+            </Link>
+
+            <Link
+              href="/explainers"
+              className={navItem}
+            >
+              Explainers
+            </Link>
+
+            <Link
+              href="/compare"
+              className={navItem}
+            >
+              Compare
+            </Link>
+
+            {/* More */}
+            <div className="relative">
+
               <button
                 type="button"
+                aria-expanded={moreOpen}
+                aria-haspopup="menu"
                 onClick={() =>
                   setMoreOpen(
                     (current) => !current
                   )
                 }
-                aria-expanded={moreOpen}
-                className={`flex items-center gap-1 rounded-xl px-4 py-2.5 text-sm font-semibold transition ${
-                  moreActive
-                    ? "bg-gray-50 text-gray-950"
-                    : "text-gray-600 hover:bg-gray-50 hover:text-gray-950"
-                }`}
+                className={`${navItem} flex items-center gap-1`}
               >
+
                 More
 
                 <ChevronDown
-                  size={15}
+                  size={16}
+                  strokeWidth={2.5}
                   className={`transition-transform ${
                     moreOpen
                       ? "rotate-180"
                       : ""
                   }`}
                 />
+
               </button>
 
               {moreOpen && (
-                <div className="absolute right-0 top-full mt-2 w-52 overflow-hidden rounded-2xl border border-gray-200 bg-white p-2 shadow-xl shadow-gray-900/10">
+                <div
+                  role="menu"
+                  className="absolute right-0 top-10 w-48 rounded-xl border border-[#111827]/10 bg-[#FFFFFF] p-2 shadow-lg"
+                >
 
-                  {moreLinks.map(
-                    (link) => {
-                      const active =
-                        isActive(
-                          link.href
-                        );
+                  <Link
+                    href="/saved"
+                    role="menuitem"
+                    onClick={closeMenus}
+                    className="block rounded-lg px-4 py-3 text-[15px] font-semibold text-[#111827] transition hover:bg-[#2563EB]/10 hover:text-[#2563EB]"
+                  >
+                    Saved Schemes
+                  </Link>
 
-                      return (
-                        <Link
-                          key={
-                            link.href
-                          }
-                          href={
-                            link.href
-                          }
-                          className={`block rounded-xl px-4 py-3 text-sm font-semibold transition ${
-                            active
-                              ? "bg-gray-100 text-gray-950"
-                              : "text-gray-600 hover:bg-gray-50 hover:text-gray-950"
-                          }`}
-                        >
-                          {
-                            link.label
-                          }
-                        </Link>
-                      );
-                    }
-                  )}
+                  <Link
+                    href="/about"
+                    role="menuitem"
+                    onClick={closeMenus}
+                    className="block rounded-lg px-4 py-3 text-[15px] font-semibold text-[#111827] transition hover:bg-[#2563EB]/10 hover:text-[#2563EB]"
+                  >
+                    About
+                  </Link>
+
+                  <Link
+                    href="/contact"
+                    role="menuitem"
+                    onClick={closeMenus}
+                    className="block rounded-lg px-4 py-3 text-[15px] font-semibold text-[#111827] transition hover:bg-[#2563EB]/10 hover:text-[#2563EB]"
+                  >
+                    Contact
+                  </Link>
 
                 </div>
               )}
+
             </div>
-          </div>
 
-          {/* =================================================
-              DESKTOP ACCOUNT AREA
-          ================================================== */}
+          </nav>
 
-          <div className="hidden items-center gap-3 lg:flex">
-
-            <Show when="signed-in">
-              <Link
-                href="/dashboard"
-                className="rounded-xl px-4 py-2.5 text-sm font-semibold text-gray-600 transition hover:bg-gray-50 hover:text-gray-950"
-              >
-                Dashboard
-              </Link>
-
-              <Link
-                href="/account"
-                className="rounded-xl px-4 py-2.5 text-sm font-semibold text-gray-600 transition hover:bg-gray-50 hover:text-gray-950"
-              >
-                Account
-              </Link>
-
-              <UserButton
-                appearance={{
-                  elements: {
-                    avatarBox:
-                      "h-10 w-10",
-                  },
-                }}
-              />
-            </Show>
+          {/* Desktop Authentication */}
+          <div className="hidden lg:block">
 
             <Show when="signed-out">
-              <SignInButton mode="modal">
-                <button
-                  type="button"
-                  className="rounded-xl border border-gray-200 bg-white px-5 py-2.5 text-sm font-bold text-gray-900 transition hover:bg-gray-50"
-                >
-                  Sign In
-                </button>
-              </SignInButton>
+
+              <button
+                type="button"
+                onClick={openSignIn}
+                className="rounded-xl bg-[#111827] px-6 py-3 text-[16px] font-semibold text-[#FFFFFF] transition hover:bg-[#2563EB]"
+              >
+                Sign In
+              </button>
+
+            </Show>
+
+            <Show when="signed-in">
+
+              <UserMenu />
+
             </Show>
 
           </div>
 
-          {/* =================================================
-              MOBILE MENU BUTTON
-          ================================================== */}
-
+          {/* Mobile Menu Button */}
           <button
             type="button"
-            onClick={() =>
-              setMobileOpen(
-                (current) => !current
-              )
-            }
             aria-label={
               mobileOpen
-                ? "Close navigation menu"
-                : "Open navigation menu"
+                ? "Close menu"
+                : "Open menu"
             }
             aria-expanded={mobileOpen}
-            className="flex h-10 w-10 items-center justify-center rounded-xl border border-gray-200 text-gray-700 transition hover:bg-gray-50 lg:hidden"
+            onClick={() => {
+              setMobileOpen(
+                (current) => !current
+              );
+
+              setMoreOpen(false);
+            }}
+            className="flex h-11 w-11 items-center justify-center rounded-xl text-[#111827] transition hover:bg-[#111827]/5 lg:hidden"
           >
+
             {mobileOpen ? (
-              <X size={20} />
+              <X size={24} />
             ) : (
-              <Menu size={20} />
+              <Menu size={24} />
             )}
+
           </button>
 
         </div>
 
-        {/* =================================================
-            MOBILE NAVIGATION
-        ================================================== */}
-
+        {/* Mobile Navigation */}
         {mobileOpen && (
-          <div className="border-t border-gray-100 py-4 lg:hidden">
+          <div className="border-t border-[#111827]/10 bg-[#FFFFFF] lg:hidden">
 
-            <div className="space-y-1">
+            <nav
+              className="mx-auto max-w-[1400px] px-6 py-5"
+              aria-label="Mobile navigation"
+            >
 
-              {mainLinks.map((link) => {
-                const active =
-                  isActive(link.href);
+              <div className="flex flex-col">
 
-                return (
-                  <Link
-                    key={link.href}
-                    href={link.href}
-                    className={`flex items-center justify-between rounded-xl px-4 py-3 text-sm font-semibold transition ${
-                      active
-                        ? "bg-gray-100 text-gray-950"
-                        : "text-gray-600 hover:bg-gray-50 hover:text-gray-950"
-                    }`}
+                <MobileLink
+                  href="/schemes"
+                  onClick={closeMenus}
+                >
+                  Schemes
+                </MobileLink>
+
+                <MobileLink
+                  href="/eligibility"
+                  onClick={closeMenus}
+                >
+                  Eligibility
+                </MobileLink>
+
+                <MobileLink
+                  href="/explainers"
+                  onClick={closeMenus}
+                >
+                  Explainers
+                </MobileLink>
+
+                <MobileLink
+                  href="/compare"
+                  onClick={closeMenus}
+                >
+                  Compare
+                </MobileLink>
+
+                {/* Mobile More */}
+                <div className="mt-1">
+
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setMoreOpen(
+                        (current) =>
+                          !current
+                      )
+                    }
+                    aria-expanded={moreOpen}
+                    className="flex w-full items-center justify-between rounded-xl px-4 py-3 text-left text-[16px] font-semibold text-[#111827] transition hover:bg-[#2563EB]/10 hover:text-[#2563EB]"
                   >
-                    <span>
-                      {link.label}
-                    </span>
 
-                    {link.href ===
-                      "/saved" &&
-                      !savedLoading && (
-                        <span className="rounded-full bg-blue-50 px-2 py-1 text-[10px] font-black text-blue-600">
-                          {savedCount}
-                        </span>
-                      )}
-                  </Link>
-                );
-              })}
+                    <span>More</span>
 
-              {/* MOBILE MORE LINKS */}
+                    <ChevronDown
+                      size={18}
+                      strokeWidth={2.5}
+                      className={`transition-transform ${
+                        moreOpen
+                          ? "rotate-180"
+                          : ""
+                      }`}
+                    />
 
-              <div className="mt-2 border-t border-gray-100 pt-2">
+                  </button>
 
-                <p className="px-4 py-2 text-xs font-bold uppercase tracking-wider text-gray-400">
-                  More
-                </p>
+                  {moreOpen && (
+                    <div className="ml-4 border-l-2 border-[#2563EB]/20 pl-3">
 
-                {moreLinks.map(
-                  (link) => {
-                    const active =
-                      isActive(
-                        link.href
-                      );
-
-                    return (
-                      <Link
-                        key={
-                          link.href
-                        }
-                        href={
-                          link.href
-                        }
-                        className={`block rounded-xl px-4 py-3 text-sm font-semibold transition ${
-                          active
-                            ? "bg-gray-100 text-gray-950"
-                            : "text-gray-600 hover:bg-gray-50 hover:text-gray-950"
-                        }`}
+                      <MobileSubLink
+                        href="/saved"
+                        onClick={closeMenus}
                       >
-                        {
-                          link.label
-                        }
-                      </Link>
-                    );
-                  }
-                )}
+                        Saved Schemes
+                      </MobileSubLink>
 
-              </div>
+                      <MobileSubLink
+                        href="/about"
+                        onClick={closeMenus}
+                      >
+                        About
+                      </MobileSubLink>
 
-              {/* MOBILE ACCOUNT */}
+                      <MobileSubLink
+                        href="/contact"
+                        onClick={closeMenus}
+                      >
+                        Contact
+                      </MobileSubLink>
 
-              <div className="mt-2 border-t border-gray-100 pt-2">
+                    </div>
+                  )}
 
-                <Show when="signed-in">
+                </div>
 
-                  <Link
-                    href="/dashboard"
-                    className="block rounded-xl px-4 py-3 text-sm font-semibold text-gray-600 hover:bg-gray-50 hover:text-gray-950"
-                  >
-                    Dashboard
-                  </Link>
+                {/* Mobile Authentication */}
+                <div className="mt-4 border-t border-[#111827]/10 pt-4">
 
-                  <Link
-                    href="/account"
-                    className="block rounded-xl px-4 py-3 text-sm font-semibold text-gray-600 hover:bg-gray-50 hover:text-gray-950"
-                  >
-                    Account
-                  </Link>
+                  <Show when="signed-out">
 
-                  <div className="px-4 py-3">
-                    <UserButton />
-                  </div>
-
-                </Show>
-
-                <Show when="signed-out">
-
-                  <SignInButton mode="modal">
                     <button
                       type="button"
-                      className="w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-left text-sm font-bold text-gray-900 transition hover:bg-gray-50"
+                      onClick={openSignIn}
+                      className="w-full rounded-xl bg-[#111827] px-5 py-3 text-[16px] font-semibold text-[#FFFFFF] transition hover:bg-[#2563EB]"
                     >
                       Sign In
                     </button>
-                  </SignInButton>
 
-                </Show>
+                  </Show>
+
+                  <Show when="signed-in">
+
+                    <div className="flex justify-end">
+                      <UserMenu />
+                    </div>
+
+                  </Show>
+
+                </div>
 
               </div>
 
-            </div>
+            </nav>
+
           </div>
         )}
 
-      </nav>
-    </header>
+      </header>
+
+      {/* Authentication Modal */}
+      <AuthModal
+        open={authOpen}
+        onClose={() =>
+          setAuthOpen(false)
+        }
+        initialMode="sign-in"
+      />
+    </>
+  );
+}
+
+function MobileLink({
+  href,
+  onClick,
+  children,
+}: {
+  href: string;
+  onClick: () => void;
+  children: React.ReactNode;
+}) {
+  return (
+    <Link
+      href={href}
+      onClick={onClick}
+      className="rounded-xl px-4 py-3 text-[16px] font-semibold text-[#111827] transition hover:bg-[#2563EB]/10 hover:text-[#2563EB]"
+    >
+      {children}
+    </Link>
+  );
+}
+
+function MobileSubLink({
+  href,
+  onClick,
+  children,
+}: {
+  href: string;
+  onClick: () => void;
+  children: React.ReactNode;
+}) {
+  return (
+    <Link
+      href={href}
+      onClick={onClick}
+      className="block rounded-lg px-4 py-2.5 text-[15px] font-semibold text-[#111827] transition hover:bg-[#2563EB]/10 hover:text-[#2563EB]"
+    >
+      {children}
+    </Link>
   );
 }

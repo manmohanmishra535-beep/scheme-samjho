@@ -1,31 +1,30 @@
-import type { Metadata } from "next";
 import Link from "next/link";
-import Script from "next/script";
 import { notFound } from "next/navigation";
 import {
   ArrowRight,
-  Check,
-  ChevronRight,
-  Clock3,
+  CheckCircle2,
+  ChevronDown,
   ExternalLink,
   FileText,
-  Heart,
   Info,
   ShieldCheck,
-  Sparkles,
-  Users,
 } from "lucide-react";
 
-import { schemes } from "../../../data/schemes";
+import { schemes, type Scheme } from "../../../data/schemes";
 import FavoriteButton from "../../../Components/FavoriteButton";
 
-type PageProps = {
+type ExplainerPageProps = {
   params: Promise<{
     slug: string;
   }>;
 };
 
-export async function generateStaticParams() {
+type Faq = {
+  question: string;
+  answer: string;
+};
+
+export function generateStaticParams() {
   return schemes.map((scheme) => ({
     slug: scheme.slug,
   }));
@@ -33,937 +32,811 @@ export async function generateStaticParams() {
 
 export async function generateMetadata({
   params,
-}: PageProps): Promise<Metadata> {
+}: ExplainerPageProps) {
   const { slug } = await params;
 
-  const scheme = schemes.find((item) => item.slug === slug);
+  const scheme = schemes.find(
+    (item) => item.slug === slug
+  );
 
   if (!scheme) {
     return {
-      title: "Scheme Not Found | SchemeSamjho",
-      description: "The requested government scheme could not be found.",
+      title: "Explainer Not Found",
     };
   }
 
-  const canonicalUrl = `https://schemesamjho.in/schemes/${scheme.slug}`;
-
   return {
-    title: `${scheme.name} — Eligibility, Benefits & Documents`,
-    description: `${scheme.shortDescription} Learn about eligibility, benefits, documents and how to proceed.`,
-    keywords: [
-      scheme.name,
-      "government scheme",
-      "government scheme eligibility",
-      "government scheme benefits",
-      "government scheme documents",
-      "government schemes India",
-      "sarkari yojana",
-      ...scheme.keywords,
-    ],
-    alternates: {
-      canonical: canonicalUrl,
-    },
-    openGraph: {
-      type: "article",
-      title: `${scheme.name} — Eligibility, Benefits & Documents`,
-      description: scheme.shortDescription,
-      url: canonicalUrl,
-      siteName: "SchemeSamjho",
-    },
+    title: `${scheme.name} Explained Simply`,
+    description: `Understand ${scheme.name}, including its benefits, eligibility, documents and application information in simple language.`,
   };
 }
 
-function formatIncome(maxIncome?: number) {
-  if (!maxIncome) {
-    return "No simple income limit listed";
-  }
-
-  return `Up to ₹${maxIncome.toLocaleString("en-IN")} / year`;
-}
-
-function formatAge(minAge?: number, maxAge?: number) {
-  if (minAge && maxAge) {
-    return `${minAge}–${maxAge} years`;
-  }
-
-  if (minAge) {
-    return `${minAge}+ years`;
-  }
-
-  if (maxAge) {
-    return `Up to ${maxAge} years`;
-  }
-
-  return "Depends on scheme rules";
-}
-
-function formatOccupations(occupations: string[]) {
-  if (occupations.length === 0) {
-    return "Depends on scheme rules";
-  }
-
-  return occupations.join(", ");
-}
-
-export default async function SchemePage({ params }: PageProps) {
+export default async function ExplainerDetailPage({
+  params,
+}: ExplainerPageProps) {
   const { slug } = await params;
 
-  const scheme = schemes.find((item) => item.slug === slug);
+  const scheme = schemes.find(
+    (item) => item.slug === slug
+  );
 
   if (!scheme) {
     notFound();
   }
 
-  const canonicalUrl = `https://schemesamjho.in/schemes/${scheme.slug}`;
-
-  const structuredData = {
-    "@context": "https://schema.org",
-    "@type": "Article",
-    headline: `${scheme.name} — Eligibility, Benefits & Documents`,
-    description: scheme.shortDescription,
-    url: canonicalUrl,
-    dateModified: scheme.lastVerified,
-    publisher: {
-      "@type": "Organization",
-      name: "SchemeSamjho",
-      url: "https://schemesamjho.in",
-    },
-    mainEntityOfPage: {
-      "@type": "WebPage",
-      "@id": canonicalUrl,
-    },
-  };
-
   const relatedSchemes = schemes
     .filter(
       (item) =>
-        item.slug !== scheme.slug && item.category === scheme.category
+        item.slug !== scheme.slug &&
+        item.category === scheme.category
     )
     .slice(0, 3);
 
+  const faqs = getFaqs(scheme);
+
   return (
-    <>
-      <Script
-        id={`scheme-structured-data-${scheme.slug}`}
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{
-          __html: JSON.stringify(structuredData),
-        }}
-      />
+    <main className="min-h-screen bg-[#FFFFFF]">
+      {/* ===================================================
+          HERO
+          =================================================== */}
 
-      <main className="min-h-screen bg-[#f7f9fc] text-slate-950">
+      <section className="bg-[#111827]">
+        <div className="mx-auto max-w-7xl px-6 py-12 sm:px-8 sm:py-16 lg:px-10 lg:py-20">
+          {/* Breadcrumb */}
 
-        {/* =====================================================
-            BREADCRUMB
-        ===================================================== */}
-        <div className="border-b border-slate-200 bg-white">
-          <div className="mx-auto max-w-7xl px-4 py-4 sm:px-6 lg:px-8">
-            <nav className="flex items-center gap-2 overflow-hidden text-sm">
-              <Link
-                href="/"
-                className="shrink-0 font-medium text-slate-400 transition hover:text-blue-600"
-              >
-                Home
-              </Link>
+          <div className="flex flex-wrap items-center gap-2 text-sm text-[#FFFFFF]/60">
+            <Link
+              href="/explainers"
+              className="transition hover:text-[#FFFFFF]"
+            >
+              Explainers
+            </Link>
 
-              <ChevronRight className="h-4 w-4 shrink-0 text-slate-300" />
+            <span>/</span>
 
-              <Link
-                href="/schemes"
-                className="shrink-0 font-medium text-slate-400 transition hover:text-blue-600"
-              >
-                Schemes
-              </Link>
+            <span className="text-[#FFFFFF]/85">
+              {scheme.name}
+            </span>
+          </div>
 
-              <ChevronRight className="h-4 w-4 shrink-0 text-slate-300" />
+          {/* Category */}
 
-              <span className="truncate font-semibold text-slate-700">
-                {scheme.name}
-              </span>
-            </nav>
+          <div className="mt-8">
+            <span className="inline-flex items-center rounded-full border border-[#FFFFFF]/20 px-4 py-2 text-sm font-bold text-[#FFFFFF]">
+              {scheme.category}
+            </span>
+          </div>
+
+          {/* Title */}
+
+          <h1 className="mt-6 max-w-4xl text-4xl font-extrabold leading-[1.06] tracking-tight text-[#FFFFFF] sm:text-5xl lg:text-6xl">
+            {scheme.name}
+            <br />
+            <span className="text-[#2563EB]">
+              explained simply.
+            </span>
+          </h1>
+
+          {/* Description */}
+
+          <p className="mt-6 max-w-3xl text-base leading-7 text-[#FFFFFF]/75 sm:text-lg">
+            {scheme.shortDescription}
+          </p>
+
+          {/* Actions */}
+
+          <div className="mt-8 flex flex-col gap-3 sm:flex-row">
+            <FavoriteButton
+              slug={scheme.slug}
+            />
+
+            <Link
+              href={`/schemes/${scheme.slug}`}
+              className="inline-flex items-center justify-center gap-2 rounded-xl border border-[#FFFFFF]/25 px-5 py-3 text-sm font-bold text-[#FFFFFF] transition hover:border-[#FFFFFF] hover:bg-[#FFFFFF] hover:text-[#111827]"
+            >
+              View full scheme details
+              <ArrowRight size={17} />
+            </Link>
           </div>
         </div>
+      </section>
 
-        {/* =====================================================
-            HERO
-        ===================================================== */}
-        <section className="relative overflow-hidden bg-[#091733]">
+      {/* ===================================================
+          MAIN CONTENT
+          =================================================== */}
 
-          <div className="absolute -left-32 -top-32 h-96 w-96 rounded-full bg-blue-600/20 blur-3xl" />
-          <div className="absolute -right-24 top-20 h-80 w-80 rounded-full bg-violet-600/20 blur-3xl" />
-          <div className="absolute bottom-[-150px] left-1/3 h-80 w-80 rounded-full bg-amber-400/10 blur-3xl" />
+      <section>
+        <div className="mx-auto grid max-w-7xl gap-10 px-6 py-12 sm:px-8 sm:py-16 lg:grid-cols-[1fr_320px] lg:px-10">
+          {/* =================================================
+              ARTICLE
+              ================================================= */}
 
-          <div className="relative mx-auto max-w-7xl px-4 py-12 sm:px-6 sm:py-16 lg:px-8 lg:py-20">
+          <article className="min-w-0">
+            {/* Intro */}
 
-            <div className="grid gap-10 lg:grid-cols-[1fr_360px] lg:items-center">
-
-              {/* Hero content */}
-              <div>
-
-                <div className="flex flex-wrap items-center gap-3">
-
-                  <span className="rounded-full bg-blue-500/15 px-4 py-2 text-xs font-black uppercase tracking-wider text-blue-300">
-                    {scheme.category}
-                  </span>
-
-                  <span className="flex items-center gap-1.5 text-xs font-semibold text-slate-400">
-                    <ShieldCheck className="h-4 w-4 text-emerald-400" />
-                    Reviewed {scheme.lastVerified}
-                  </span>
-
-                </div>
-
-                <h1 className="mt-6 max-w-4xl text-4xl font-black leading-tight tracking-tight text-white sm:text-5xl lg:text-6xl">
-                  {scheme.name}
-                </h1>
-
-                <p className="mt-6 max-w-3xl text-base leading-7 text-slate-300 sm:text-lg">
-                  {scheme.shortDescription}
-                </p>
-
-                <div className="mt-8 flex flex-wrap gap-3">
-
-                  <FavoriteButton slug={scheme.slug} />
-
-                  <a
-                    href={scheme.officialUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center gap-2 rounded-xl border border-white/15 bg-white/5 px-5 py-3 text-sm font-bold text-white transition hover:bg-white/10"
-                  >
-                    Official Source
-                    <ExternalLink className="h-4 w-4" />
-                  </a>
-
-                  <Link
-                    href={`/explainers/${scheme.slug}`}
-                    className="inline-flex items-center gap-2 rounded-xl bg-white px-5 py-3 text-sm font-black text-blue-700 transition hover:bg-blue-50"
-                  >
-                    Simple Explainer
-                    <ArrowRight className="h-4 w-4" />
-                  </Link>
-
-                </div>
-
-              </div>
-
-              {/* Hero summary card */}
-              <div className="rounded-[28px] border border-white/10 bg-white/10 p-2 shadow-2xl backdrop-blur">
-
-                <div className="rounded-[22px] bg-white p-6">
-
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-xs font-black uppercase tracking-wider text-slate-400">
-                        Scheme at a glance
-                      </p>
-
-                      <p className="mt-1 text-lg font-black text-slate-950">
-                        Quick information
-                      </p>
-                    </div>
-
-                    <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-blue-50">
-                      <Sparkles className="h-5 w-5 text-blue-600" />
-                    </div>
-                  </div>
-
-                  <div className="mt-6 space-y-3">
-
-                    <div className="rounded-2xl bg-slate-50 p-4">
-                      <p className="text-xs font-bold uppercase tracking-wide text-slate-400">
-                        Age
-                      </p>
-
-                      <p className="mt-1 font-bold text-slate-900">
-                        {formatAge(scheme.minAge, scheme.maxAge)}
-                      </p>
-                    </div>
-
-                    <div className="rounded-2xl bg-blue-50 p-4">
-                      <p className="text-xs font-bold uppercase tracking-wide text-blue-500">
-                        Income
-                      </p>
-
-                      <p className="mt-1 font-bold text-blue-900">
-                        {formatIncome(scheme.maxIncome)}
-                      </p>
-                    </div>
-
-                    <div className="rounded-2xl bg-emerald-50 p-4">
-                      <p className="text-xs font-bold uppercase tracking-wide text-emerald-600">
-                        Benefits
-                      </p>
-
-                      <p className="mt-1 font-bold text-emerald-900">
-                        {scheme.benefits.length} key benefits
-                      </p>
-                    </div>
-
-                  </div>
-
-                </div>
-              </div>
-
-            </div>
-          </div>
-        </section>
-
-        {/* =====================================================
-            QUICK FACTS
-        ===================================================== */}
-        <section className="relative z-10 mx-auto -mt-7 max-w-7xl px-4 sm:px-6 lg:px-8">
-
-          <div className="grid overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-xl shadow-slate-200/50 sm:grid-cols-2 lg:grid-cols-4">
-
-            <div className="border-b p-5 sm:border-r lg:border-b-0">
-              <div className="flex items-center gap-3">
-                <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-blue-50">
-                  <Users className="h-5 w-5 text-blue-600" />
+            <div className="rounded-2xl border border-[#111827]/10 bg-[#FFFFFF] p-6 sm:p-8">
+              <div className="flex items-start gap-4">
+                <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-[#2563EB]/10">
+                  <Info
+                    size={21}
+                    className="text-[#2563EB]"
+                  />
                 </div>
 
                 <div>
-                  <p className="text-xs font-semibold text-slate-400">
-                    Who may qualify
+                  <p className="text-sm font-bold text-[#2563EB]">
+                    In simple words
                   </p>
 
-                  <p className="mt-1 text-sm font-bold text-slate-900">
-                    {formatOccupations(scheme.occupations)}
+                  <p className="mt-2 text-base leading-7 text-[#111827]/70">
+                    {scheme.description}
                   </p>
                 </div>
               </div>
             </div>
 
-            <div className="border-b p-5 lg:border-b-0 lg:border-r">
-              <div className="flex items-center gap-3">
-                <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-emerald-50">
-                  <Heart className="h-5 w-5 text-emerald-600" />
-                </div>
+            {/* What is it? */}
 
-                <div>
-                  <p className="text-xs font-semibold text-slate-400">
-                    Benefits
+            <section className="mt-10">
+              <SectionHeading>
+                What is {scheme.name}?
+              </SectionHeading>
+
+              <p className="mt-4 text-base leading-8 text-[#111827]/70">
+                {scheme.description}
+              </p>
+            </section>
+
+            {/* Why */}
+
+            <section className="mt-10">
+              <SectionHeading>
+                Why does this scheme exist?
+              </SectionHeading>
+
+              <p className="mt-4 text-base leading-8 text-[#111827]/70">
+                The scheme is designed to provide
+                support to people who fall within its
+                defined beneficiary group. The exact
+                purpose, benefits and conditions depend
+                on the official scheme guidelines.
+              </p>
+            </section>
+
+            {/* Who is it for? */}
+
+            <section className="mt-10">
+              <SectionHeading>
+                Who is it for?
+              </SectionHeading>
+
+              <p className="mt-4 text-base leading-8 text-[#111827]/70">
+                {scheme.eligibilitySummary}
+              </p>
+
+              {scheme.occupations.length > 0 && (
+                <div className="mt-6">
+                  <p className="text-sm font-bold text-[#111827]">
+                    Relevant occupations or
+                    beneficiary groups
                   </p>
 
-                  <p className="mt-1 text-sm font-bold text-slate-900">
-                    {scheme.benefits.length} listed benefits
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            <div className="border-b p-5 sm:border-r lg:border-b-0">
-              <div className="flex items-center gap-3">
-                <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-violet-50">
-                  <FileText className="h-5 w-5 text-violet-600" />
-                </div>
-
-                <div>
-                  <p className="text-xs font-semibold text-slate-400">
-                    Documents
-                  </p>
-
-                  <p className="mt-1 text-sm font-bold text-slate-900">
-                    {scheme.documents.length} listed documents
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            <div className="p-5">
-              <div className="flex items-center gap-3">
-                <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-amber-50">
-                  <Clock3 className="h-5 w-5 text-amber-600" />
-                </div>
-
-                <div>
-                  <p className="text-xs font-semibold text-slate-400">
-                    Information
-                  </p>
-
-                  <p className="mt-1 text-sm font-bold text-slate-900">
-                    Reviewed {scheme.lastVerified}
-                  </p>
-                </div>
-              </div>
-            </div>
-
-          </div>
-        </section>
-
-        {/* =====================================================
-            MAIN CONTENT
-        ===================================================== */}
-        <section className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
-
-          <div className="grid gap-10 lg:grid-cols-[1fr_310px]">
-
-            {/* MAIN COLUMN */}
-            <div className="space-y-8">
-
-              {/* About */}
-              <section className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm sm:p-8">
-
-                <div className="flex items-start gap-4">
-
-                  <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-blue-50">
-                    <Info className="h-5 w-5 text-blue-600" />
+                  <div className="mt-3 flex flex-wrap gap-2">
+                    {scheme.occupations.map(
+                      (occupation) => (
+                        <span
+                          key={occupation}
+                          className="rounded-lg border border-[#111827]/10 px-3 py-2 text-sm font-semibold text-[#111827]"
+                        >
+                          {occupation}
+                        </span>
+                      )
+                    )}
                   </div>
-
-                  <div>
-                    <p className="text-xs font-black uppercase tracking-wider text-blue-600">
-                      Understand the scheme
-                    </p>
-
-                    <h2 className="mt-1 text-2xl font-black text-slate-950">
-                      What is this scheme?
-                    </h2>
-                  </div>
-
                 </div>
-
-                <p className="mt-6 text-base leading-8 text-slate-600">
-                  {scheme.description}
-                </p>
-
-              </section>
-
-              {/* Benefits */}
-              <section className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm sm:p-8">
-
-                <div>
-                  <p className="text-xs font-black uppercase tracking-wider text-emerald-600">
-                    What you may receive
-                  </p>
-
-                  <h2 className="mt-1 text-2xl font-black text-slate-950">
-                    Key benefits
-                  </h2>
-                </div>
-
-                <div className="mt-7 grid gap-3 sm:grid-cols-2">
-
-                  {scheme.benefits.map((benefit, index) => (
-                    <div
-                      key={index}
-                      className="group rounded-2xl border border-slate-100 bg-slate-50 p-5 transition hover:border-emerald-200 hover:bg-emerald-50/40"
-                    >
-
-                      <div className="flex gap-4">
-
-                        <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-emerald-100 text-emerald-700">
-                          <Check className="h-5 w-5" />
-                        </div>
-
-                        <p className="text-sm font-semibold leading-6 text-slate-700">
-                          {benefit}
-                        </p>
-
-                      </div>
-
-                    </div>
-                  ))}
-
-                </div>
-
-              </section>
-
-              {/* Eligibility */}
-              <section className="overflow-hidden rounded-3xl border border-blue-100 bg-white shadow-sm">
-
-                <div className="bg-gradient-to-r from-blue-50 to-indigo-50 p-6 sm:p-8">
-
-                  <div className="flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
-
-                    <div>
-                      <p className="text-xs font-black uppercase tracking-wider text-blue-600">
-                        Before you apply
-                      </p>
-
-                      <h2 className="mt-1 text-2xl font-black text-slate-950">
-                        Preliminary eligibility
-                      </h2>
-
-                      <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-600">
-                        These factors can help you understand whether the
-                        scheme may be relevant to you.
-                      </p>
-                    </div>
-
-                    <Link
-                      href="/eligibility"
-                      className="inline-flex shrink-0 items-center justify-center gap-2 rounded-xl bg-blue-600 px-5 py-3 text-sm font-black text-white shadow-lg shadow-blue-200 transition hover:bg-blue-700"
-                    >
-                      Check My Eligibility
-                      <ArrowRight className="h-4 w-4" />
-                    </Link>
-
-                  </div>
-
-                </div>
-
-                <div className="p-6 sm:p-8">
-
-                  <div className="space-y-3">
-
-                    {scheme.eligibilitySummary.map((item, index) => (
-                      <div
-                        key={index}
-                        className="flex gap-4 rounded-2xl border border-slate-100 bg-slate-50 p-4"
-                      >
-
-                        <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-blue-100 text-sm font-black text-blue-700">
-                          {index + 1}
-                        </div>
-
-                        <p className="text-sm leading-7 text-slate-700">
-                          {item}
-                        </p>
-
-                      </div>
-                    ))}
-
-                  </div>
-
-                  <div className="mt-6 rounded-2xl border border-amber-200 bg-amber-50 p-4">
-
-                    <div className="flex gap-3">
-
-                      <Info className="mt-0.5 h-5 w-5 shrink-0 text-amber-600" />
-
-                      <p className="text-xs leading-5 text-amber-900">
-                        This is a preliminary guide only. Final eligibility is
-                        determined according to the applicable official scheme
-                        rules and government authority.
-                      </p>
-
-                    </div>
-
-                  </div>
-
-                </div>
-
-              </section>
-
-              {/* Documents */}
-              <section className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm sm:p-8">
-
-                <div className="flex items-center gap-4">
-
-                  <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-violet-50">
-                    <FileText className="h-5 w-5 text-violet-600" />
-                  </div>
-
-                  <div>
-                    <p className="text-xs font-black uppercase tracking-wider text-violet-600">
-                      Prepare ahead
-                    </p>
-
-                    <h2 className="mt-1 text-2xl font-black text-slate-950">
-                      Documents you may need
-                    </h2>
-                  </div>
-
-                </div>
-
-                <p className="mt-4 text-sm leading-6 text-slate-500">
-                  Requirements can vary depending on the scheme and application
-                  channel.
-                </p>
-
-                <div className="mt-7 grid gap-3 sm:grid-cols-2">
-
-                  {scheme.documents.map((document, index) => (
-                    <div
-                      key={index}
-                      className="flex items-center gap-3 rounded-2xl border border-slate-100 bg-slate-50 p-4 transition hover:border-violet-200"
-                    >
-
-                      <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-white shadow-sm">
-                        <FileText className="h-4 w-4 text-violet-600" />
-                      </div>
-
-                      <p className="text-sm font-semibold text-slate-700">
-                        {document}
-                      </p>
-
-                    </div>
-                  ))}
-
-                </div>
-
-              </section>
-
-              {/* Exclusions */}
-              {scheme.exclusions && scheme.exclusions.length > 0 && (
-                <section className="rounded-3xl border border-amber-200 bg-amber-50 p-6 sm:p-8">
-
-                  <div className="flex gap-4">
-
-                    <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-amber-100">
-                      <Info className="h-5 w-5 text-amber-700" />
-                    </div>
-
-                    <div>
-                      <p className="text-xs font-black uppercase tracking-wider text-amber-700">
-                        Important
-                      </p>
-
-                      <h2 className="mt-1 text-2xl font-black text-slate-950">
-                        Exclusions & conditions
-                      </h2>
-                    </div>
-
-                  </div>
-
-                  <div className="mt-6 space-y-3">
-
-                    {scheme.exclusions.map((item, index) => (
-                      <div
-                        key={index}
-                        className="flex gap-3 rounded-2xl bg-white/70 p-4"
-                      >
-                        <span className="font-black text-amber-700">!</span>
-
-                        <p className="text-sm leading-6 text-slate-700">
-                          {item}
-                        </p>
-                      </div>
-                    ))}
-
-                  </div>
-
-                </section>
               )}
+            </section>
 
-              {/* Application journey */}
-              <section className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm sm:p-8">
+            {/* Benefits */}
 
-                <p className="text-xs font-black uppercase tracking-wider text-blue-600">
-                  Next steps
+            <section
+              id="benefits"
+              className="mt-10 scroll-mt-28"
+            >
+              <SectionHeading>
+                What are the benefits?
+              </SectionHeading>
+
+              <div className="mt-5 space-y-3">
+                {scheme.benefits.map(
+                  (benefit) => (
+                    <div
+                      key={benefit}
+                      className="flex items-start gap-3 rounded-xl border border-[#111827]/10 p-4"
+                    >
+                      <CheckCircle2
+                        size={20}
+                        className="mt-0.5 shrink-0 text-[#16A34A]"
+                      />
+
+                      <p className="text-sm leading-6 text-[#111827]/70">
+                        {benefit}
+                      </p>
+                    </div>
+                  )
+                )}
+              </div>
+            </section>
+
+            {/* Eligibility */}
+
+            <section
+              id="eligibility"
+              className="mt-10 scroll-mt-28"
+            >
+              <SectionHeading>
+                Eligibility
+              </SectionHeading>
+
+              <div className="mt-5 rounded-2xl border border-[#111827]/10 p-6">
+                <p className="text-base leading-7 text-[#111827]/70">
+                  {scheme.eligibilitySummary}
                 </p>
 
-                <h2 className="mt-1 text-2xl font-black text-slate-950">
-                  How to proceed
-                </h2>
+                <div className="mt-6 grid gap-4 sm:grid-cols-2">
+                  <InfoCard
+                    label="Minimum age"
+                    value={
+                      scheme.minAge != null
+                        ? `${scheme.minAge} years`
+                        : "No specific age shown"
+                    }
+                  />
 
-                <div className="relative mt-8">
+                  <InfoCard
+                    label="Maximum age"
+                    value={
+                      scheme.maxAge != null
+                        ? `${scheme.maxAge} years`
+                        : "No specific age shown"
+                    }
+                  />
 
-                  <div className="absolute left-[18px] top-4 hidden h-[calc(100%-40px)] w-px bg-slate-200 sm:block" />
+                  <InfoCard
+                    label="Income limit"
+                    value={
+                      scheme.maxIncome != null
+                        ? `₹${scheme.maxIncome.toLocaleString(
+                            "en-IN"
+                          )}`
+                        : "See scheme rules"
+                    }
+                  />
 
-                  <div className="space-y-7">
-
-                    {[
-                      {
-                        number: "01",
-                        title: "Review the eligibility",
-                        description:
-                          "Read the eligibility factors carefully and use the preliminary checker if useful.",
-                      },
-                      {
-                        number: "02",
-                        title: "Prepare your documents",
-                        description:
-                          "Keep the listed documents ready and check whether the official portal asks for anything additional.",
-                      },
-                      {
-                        number: "03",
-                        title: "Visit the official source",
-                        description:
-                          "Use the relevant government website or authority for the actual application process.",
-                      },
-                    ].map((step) => (
-                      <div
-                        key={step.number}
-                        className="relative flex gap-5"
-                      >
-
-                        <div className="relative z-10 flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-blue-600 text-xs font-black text-white shadow-lg shadow-blue-200">
-                          {step.number}
-                        </div>
-
-                        <div className="pt-1">
-
-                          <h3 className="font-black text-slate-900">
-                            {step.title}
-                          </h3>
-
-                          <p className="mt-1 max-w-2xl text-sm leading-6 text-slate-600">
-                            {step.description}
-                          </p>
-
-                        </div>
-
-                      </div>
-                    ))}
-
-                  </div>
-
+                  <InfoCard
+                    label="Category"
+                    value={scheme.category}
+                  />
                 </div>
+              </div>
+            </section>
+
+            {/* Exclusions */}
+
+            {scheme.exclusions.length > 0 && (
+              <section className="mt-10">
+                <SectionHeading>
+                  Who may not qualify?
+                </SectionHeading>
+
+                <div className="mt-5 space-y-3">
+                  {scheme.exclusions.map(
+                    (exclusion) => (
+                      <div
+                        key={exclusion}
+                        className="rounded-xl border border-[#111827]/10 bg-[#111827]/5 p-4"
+                      >
+                        <p className="text-sm leading-6 text-[#111827]/70">
+                          {exclusion}
+                        </p>
+                      </div>
+                    )
+                  )}
+                </div>
+              </section>
+            )}
+
+            {/* Documents */}
+
+            <section
+              id="documents"
+              className="mt-10 scroll-mt-28"
+            >
+              <SectionHeading>
+                Documents you may need
+              </SectionHeading>
+
+              <div className="mt-5 grid gap-3 sm:grid-cols-2">
+                {scheme.documents.map(
+                  (document) => (
+                    <div
+                      key={document}
+                      className="flex items-start gap-3 rounded-xl border border-[#111827]/10 p-4"
+                    >
+                      <FileText
+                        size={19}
+                        className="mt-0.5 shrink-0 text-[#2563EB]"
+                      />
+
+                      <span className="text-sm leading-6 text-[#111827]/70">
+                        {document}
+                      </span>
+                    </div>
+                  )
+                )}
+              </div>
+            </section>
+
+            {/* How it works */}
+
+            <section
+              id="how-it-works"
+              className="mt-10 scroll-mt-28"
+            >
+              <SectionHeading>
+                How does it work?
+              </SectionHeading>
+
+              <div className="mt-6 space-y-5">
+                <Step
+                  number="01"
+                  title="Check the eligibility"
+                  description="Review the official eligibility conditions and compare them with your situation."
+                />
+
+                <Step
+                  number="02"
+                  title="Prepare the documents"
+                  description="Keep the identity, bank, income, land, occupation or other documents required by the scheme ready."
+                />
+
+                <Step
+                  number="03"
+                  title="Apply through the official process"
+                  description="Use the official government portal, department, centre or other authorised channel specified for the scheme."
+                />
+
+                <Step
+                  number="04"
+                  title="Complete verification"
+                  description="The concerned authority may verify your information before approving the benefit."
+                />
+
+                <Step
+                  number="05"
+                  title="Receive the benefit"
+                  description="If approved, the applicable benefit is provided according to the official scheme rules."
+                />
+              </div>
+            </section>
+
+            {/* How to apply */}
+
+            <section className="mt-10">
+              <SectionHeading>
+                How to apply
+              </SectionHeading>
+
+              <div className="mt-5 rounded-2xl bg-[#111827] p-6 sm:p-8">
+                <p className="text-sm leading-7 text-[#FFFFFF]/70">
+                  Application procedures can change
+                  depending on the scheme and
+                  government department. Always use
+                  the official source below for the
+                  current application process.
+                </p>
 
                 <a
                   href={scheme.officialUrl}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="mt-8 inline-flex items-center gap-2 rounded-xl bg-blue-600 px-6 py-3.5 text-sm font-black text-white shadow-lg shadow-blue-200 transition hover:bg-blue-700"
+                  className="mt-6 inline-flex items-center justify-center gap-2 rounded-xl bg-[#2563EB] px-5 py-3 text-sm font-bold text-[#FFFFFF] transition hover:bg-[#FFFFFF] hover:text-[#111827]"
                 >
-                  Visit Official Source
-                  <ExternalLink className="h-4 w-4" />
+                  Visit official source
+                  <ExternalLink size={17} />
                 </a>
-
-              </section>
-
-              {/* Related */}
-              {relatedSchemes.length > 0 && (
-                <section>
-
-                  <div className="mb-6">
-                    <p className="text-xs font-black uppercase tracking-wider text-slate-400">
-                      Keep exploring
-                    </p>
-
-                    <h2 className="mt-1 text-2xl font-black text-slate-950">
-                      Related schemes
-                    </h2>
-
-                    <p className="mt-2 text-sm text-slate-500">
-                      Other schemes in the same category.
-                    </p>
-                  </div>
-
-                  <div className="grid gap-4 md:grid-cols-3">
-
-                    {relatedSchemes.map((related) => (
-                      <Link
-                        key={related.slug}
-                        href={`/schemes/${related.slug}`}
-                        className="group rounded-3xl border border-slate-200 bg-white p-5 transition duration-300 hover:-translate-y-1 hover:border-blue-200 hover:shadow-xl"
-                      >
-
-                        <span className="rounded-full bg-blue-50 px-3 py-1 text-[11px] font-black text-blue-700">
-                          {related.category}
-                        </span>
-
-                        <h3 className="mt-5 font-black leading-6 text-slate-900 transition group-hover:text-blue-700">
-                          {related.name}
-                        </h3>
-
-                        <p className="mt-2 line-clamp-3 text-sm leading-6 text-slate-500">
-                          {related.shortDescription}
-                        </p>
-
-                        <div className="mt-5 flex items-center gap-1 text-sm font-bold text-blue-600">
-                          View Scheme
-                          <ArrowRight className="h-4 w-4 transition group-hover:translate-x-1" />
-                        </div>
-
-                      </Link>
-                    ))}
-
-                  </div>
-
-                </section>
-              )}
-
-            </div>
-
-            {/* =================================================
-                SIDEBAR
-            ================================================= */}
-            <aside>
-
-              <div className="sticky top-24 space-y-5">
-
-                {/* Action card */}
-                <div className="rounded-3xl border border-slate-200 bg-white p-5 shadow-lg shadow-slate-200/40">
-
-                  <p className="text-xs font-black uppercase tracking-wider text-slate-400">
-                    Take the next step
-                  </p>
-
-                  <h2 className="mt-2 text-xl font-black text-slate-950">
-                    What would you like to do?
-                  </h2>
-
-                  <div className="mt-5 space-y-3">
-
-                    <Link
-                      href="/eligibility"
-                      className="flex items-center justify-between rounded-xl bg-blue-600 px-4 py-3.5 text-sm font-black text-white transition hover:bg-blue-700"
-                    >
-                      Check Eligibility
-                      <ArrowRight className="h-4 w-4" />
-                    </Link>
-
-                    <Link
-                      href={`/explainers/${scheme.slug}`}
-                      className="flex items-center justify-between rounded-xl border border-slate-200 px-4 py-3.5 text-sm font-bold text-slate-700 transition hover:border-blue-200 hover:text-blue-600"
-                    >
-                      Read Simple Explainer
-                      <ArrowRight className="h-4 w-4" />
-                    </Link>
-
-                    <Link
-                      href="/compare"
-                      className="flex items-center justify-between rounded-xl border border-slate-200 px-4 py-3.5 text-sm font-bold text-slate-700 transition hover:border-blue-200 hover:text-blue-600"
-                    >
-                      Compare Schemes
-                      <ArrowRight className="h-4 w-4" />
-                    </Link>
-
-                  </div>
-
-                </div>
-
-                {/* Official source */}
-                <div className="rounded-3xl border border-emerald-100 bg-emerald-50 p-5">
-
-                  <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-white">
-                    <ShieldCheck className="h-5 w-5 text-emerald-600" />
-                  </div>
-
-                  <h2 className="mt-4 font-black text-slate-950">
-                    Verify before applying
-                  </h2>
-
-                  <p className="mt-2 text-sm leading-6 text-slate-600">
-                    Rules and application requirements can change. Always
-                    verify the latest information with the official source.
-                  </p>
-
-                  <a
-                    href={scheme.officialUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="mt-4 inline-flex items-center gap-1 text-sm font-black text-emerald-700"
-                  >
-                    Open official source
-                    <ExternalLink className="h-3.5 w-3.5" />
-                  </a>
-
-                </div>
-
-                {/* Reviewed card */}
-                <div className="rounded-3xl border border-slate-200 bg-white p-5">
-
-                  <p className="text-xs font-black uppercase tracking-wider text-slate-400">
-                    SchemeSamjho information
-                  </p>
-
-                  <div className="mt-4 flex items-center gap-3">
-
-                    <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-50">
-                      <Clock3 className="h-5 w-5 text-blue-600" />
-                    </div>
-
-                    <div>
-                      <p className="text-xs text-slate-400">
-                        Last reviewed
-                      </p>
-
-                      <p className="text-sm font-black text-slate-900">
-                        {scheme.lastVerified}
-                      </p>
-                    </div>
-
-                  </div>
-
-                </div>
-
               </div>
+            </section>
 
-            </aside>
+            {/* FAQs */}
 
-          </div>
-        </section>
+            <section
+              id="faqs"
+              className="mt-10 scroll-mt-28"
+            >
+              <SectionHeading>
+                Frequently asked questions
+              </SectionHeading>
 
-        {/* =====================================================
-            DISCLAIMER
-        ===================================================== */}
-        <section className="border-t border-slate-200 bg-white">
+              <div className="mt-5 space-y-3">
+                {faqs.map((faq) => (
+                  <details
+                    key={faq.question}
+                    className="group rounded-xl border border-[#111827]/10"
+                  >
+                    <summary className="flex cursor-pointer list-none items-center justify-between gap-4 px-5 py-4 text-sm font-bold text-[#111827]">
+                      <span>{faq.question}</span>
 
-          <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
+                      <ChevronDown
+                        size={18}
+                        className="shrink-0 transition-transform group-open:rotate-180"
+                      />
+                    </summary>
 
-            <div className="rounded-3xl border border-amber-200 bg-amber-50 p-6 sm:p-7">
+                    <div className="border-t border-[#111827]/10 px-5 py-4">
+                      <p className="text-sm leading-6 text-[#111827]/65">
+                        {faq.answer}
+                      </p>
+                    </div>
+                  </details>
+                ))}
+              </div>
+            </section>
 
-              <div className="flex gap-4">
+            {/* Disclaimer */}
 
-                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-amber-100">
-                  <Info className="h-5 w-5 text-amber-700" />
-                </div>
+            <div className="mt-10 rounded-2xl border border-[#111827]/10 bg-[#111827]/5 p-6">
+              <div className="flex items-start gap-3">
+                <ShieldCheck
+                  size={21}
+                  className="mt-0.5 shrink-0 text-[#16A34A]"
+                />
 
                 <div>
-
-                  <h2 className="font-black text-slate-900">
-                    Important disclaimer
+                  <h2 className="text-sm font-extrabold text-[#111827]">
+                    Important
                   </h2>
 
-                  <p className="mt-2 text-sm leading-6 text-slate-600">
-                    SchemeSamjho is an independent information platform and
-                    is not affiliated with the Government of India or any
-                    government department. Information on this page is for
-                    general guidance only. Eligibility information and the
-                    checker are preliminary and do not guarantee eligibility,
-                    approval or benefits. Always verify the latest rules and
-                    application requirements with the relevant official
-                    government source.
+                  <p className="mt-2 text-sm leading-6 text-[#111827]/65">
+                    SchemeSamjho is an informational
+                    platform. Eligibility results and
+                    explanations are preliminary and
+                    should not be treated as official
+                    government decisions. Always verify
+                    current eligibility, benefits,
+                    documents and application procedures
+                    through the official government
+                    source.
                   </p>
-
                 </div>
+              </div>
+            </div>
+          </article>
 
+          {/* =================================================
+              SIDEBAR
+              ================================================= */}
+
+          <aside className="lg:sticky lg:top-28 lg:self-start">
+            <div className="rounded-2xl border border-[#111827]/10 bg-[#FFFFFF] p-6">
+              <p className="text-xs font-bold uppercase tracking-wide text-[#2563EB]">
+                Quick information
+              </p>
+
+              <h2 className="mt-2 text-xl font-extrabold text-[#111827]">
+                {scheme.name}
+              </h2>
+
+              <div className="mt-6 space-y-4">
+                <SidebarItem
+                  label="Category"
+                  value={scheme.category}
+                />
+
+                <SidebarItem
+                  label="Minimum age"
+                  value={
+                    scheme.minAge != null
+                      ? `${scheme.minAge} years`
+                      : "Not specified"
+                  }
+                />
+
+                <SidebarItem
+                  label="Maximum age"
+                  value={
+                    scheme.maxAge != null
+                      ? `${scheme.maxAge} years`
+                      : "Not specified"
+                  }
+                />
+
+                <SidebarItem
+                  label="Income"
+                  value={
+                    scheme.maxIncome != null
+                      ? `₹${scheme.maxIncome.toLocaleString(
+                          "en-IN"
+                        )}`
+                      : "See rules"
+                  }
+                />
+
+                <SidebarItem
+                  label="Last verified"
+                  value={scheme.lastVerified}
+                />
               </div>
 
+              <a
+                href={scheme.officialUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="mt-6 flex w-full items-center justify-center gap-2 rounded-xl bg-[#2563EB] px-5 py-3 text-sm font-bold text-[#FFFFFF] transition hover:bg-[#111827]"
+              >
+                Official source
+                <ExternalLink size={16} />
+              </a>
             </div>
 
-          </div>
+            {/* Page navigation */}
 
-        </section>
+            <div className="mt-5 rounded-2xl border border-[#111827]/10 p-6">
+              <p className="text-xs font-bold uppercase tracking-wide text-[#111827]/45">
+                On this page
+              </p>
 
-        {/* =====================================================
-            BOTTOM CTA
-        ===================================================== */}
-        <section className="bg-[#f7f9fc] px-4 py-16 sm:px-6 lg:px-8">
+              <div className="mt-4 space-y-2 text-sm">
+                <a
+                  href="#benefits"
+                  className="block py-1 font-semibold text-[#111827]/65 hover:text-[#2563EB]"
+                >
+                  Benefits
+                </a>
 
-          <div className="mx-auto max-w-5xl overflow-hidden rounded-[32px] bg-gradient-to-r from-blue-600 via-indigo-600 to-violet-600 p-8 text-center shadow-2xl shadow-blue-200 sm:p-12">
+                <a
+                  href="#eligibility"
+                  className="block py-1 font-semibold text-[#111827]/65 hover:text-[#2563EB]"
+                >
+                  Eligibility
+                </a>
 
-            <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-white/15 text-2xl">
-              🇮🇳
+                <a
+                  href="#documents"
+                  className="block py-1 font-semibold text-[#111827]/65 hover:text-[#2563EB]"
+                >
+                  Documents
+                </a>
+
+                <a
+                  href="#how-it-works"
+                  className="block py-1 font-semibold text-[#111827]/65 hover:text-[#2563EB]"
+                >
+                  How it works
+                </a>
+
+                <a
+                  href="#faqs"
+                  className="block py-1 font-semibold text-[#111827]/65 hover:text-[#2563EB]"
+                >
+                  FAQs
+                </a>
+              </div>
             </div>
+          </aside>
+        </div>
+      </section>
 
-            <h2 className="mt-5 text-3xl font-black text-white sm:text-4xl">
-              Explore more government schemes
-            </h2>
+      {/* ===================================================
+          RELATED SCHEMES
+          =================================================== */}
 
-            <p className="mx-auto mt-4 max-w-2xl text-sm leading-6 text-blue-100 sm:text-base">
-              Discover other schemes, compare options and use the preliminary
-              eligibility checker to find schemes that may be relevant to you.
-            </p>
+      {relatedSchemes.length > 0 && (
+        <section className="border-t border-[#111827]/10 bg-[#111827]/5">
+          <div className="mx-auto max-w-7xl px-6 py-12 sm:px-8 sm:py-16 lg:px-10">
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+              <div>
+                <p className="text-sm font-bold text-[#2563EB]">
+                  Explore more
+                </p>
 
-            <div className="mt-7 flex flex-col justify-center gap-3 sm:flex-row">
+                <h2 className="mt-2 text-3xl font-extrabold text-[#111827]">
+                  Related schemes
+                </h2>
+              </div>
 
               <Link
                 href="/schemes"
-                className="inline-flex items-center justify-center gap-2 rounded-xl bg-white px-6 py-3.5 text-sm font-black text-blue-700 transition hover:bg-blue-50"
+                className="inline-flex items-center gap-2 text-sm font-bold text-[#2563EB] hover:text-[#111827]"
               >
-                Explore Schemes
-                <ArrowRight className="h-4 w-4" />
+                Browse all schemes
+                <ArrowRight size={17} />
               </Link>
-
-              <Link
-                href="/eligibility"
-                className="inline-flex items-center justify-center gap-2 rounded-xl border border-white/25 bg-white/10 px-6 py-3.5 text-sm font-black text-white transition hover:bg-white/20"
-              >
-                Check Eligibility
-                <Sparkles className="h-4 w-4" />
-              </Link>
-
             </div>
 
+            <div className="mt-8 grid gap-5 md:grid-cols-2 lg:grid-cols-3">
+              {relatedSchemes.map(
+                (relatedScheme) => (
+                  <Link
+                    key={relatedScheme.slug}
+                    href={`/explainers/${relatedScheme.slug}`}
+                    className="group rounded-2xl border border-[#111827]/10 bg-[#FFFFFF] p-6 transition hover:-translate-y-1 hover:border-[#2563EB]/30"
+                  >
+                    <p className="text-xs font-bold uppercase tracking-wide text-[#16A34A]">
+                      {relatedScheme.category}
+                    </p>
+
+                    <h3 className="mt-2 text-xl font-extrabold text-[#111827]">
+                      {relatedScheme.name}
+                    </h3>
+
+                    <p className="mt-3 text-sm leading-6 text-[#111827]/60">
+                      {relatedScheme.shortDescription}
+                    </p>
+
+                    <span className="mt-5 inline-flex items-center gap-2 text-sm font-bold text-[#2563EB] group-hover:text-[#111827]">
+                      Read explainer
+                      <ArrowRight size={16} />
+                    </span>
+                  </Link>
+                )
+              )}
+            </div>
           </div>
-
         </section>
+      )}
 
-      </main>
-    </>
+      {/* ===================================================
+          BOTTOM CTA
+          =================================================== */}
+
+      <section className="bg-[#FFFFFF]">
+        <div className="mx-auto max-w-7xl px-6 py-12 sm:px-8 lg:px-10">
+          <div className="flex flex-col gap-5 rounded-2xl bg-[#111827] p-6 sm:p-8 lg:flex-row lg:items-center lg:justify-between">
+            <div>
+              <p className="text-xl font-extrabold text-[#FFFFFF]">
+                Want to check whether this scheme
+                may fit you?
+              </p>
+
+              <p className="mt-2 text-sm leading-6 text-[#FFFFFF]/65">
+                Use the SchemeSamjho preliminary
+                eligibility checker to explore
+                relevant schemes.
+              </p>
+            </div>
+
+            <Link
+              href="/eligibility"
+              className="inline-flex shrink-0 items-center justify-center gap-2 rounded-xl bg-[#2563EB] px-5 py-3 text-sm font-bold text-[#FFFFFF] transition hover:bg-[#FFFFFF] hover:text-[#111827]"
+            >
+              Check eligibility
+              <ArrowRight size={17} />
+            </Link>
+          </div>
+        </div>
+      </section>
+    </main>
   );
+}
+
+/* =========================================================
+   COMPONENTS
+   ========================================================= */
+
+function SectionHeading({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  return (
+    <h2 className="text-2xl font-extrabold tracking-tight text-[#111827] sm:text-3xl">
+      {children}
+    </h2>
+  );
+}
+
+function InfoCard({
+  label,
+  value,
+}: {
+  label: string;
+  value: string;
+}) {
+  return (
+    <div className="rounded-xl border border-[#111827]/10 p-4">
+      <p className="text-xs font-bold uppercase tracking-wide text-[#111827]/45">
+        {label}
+      </p>
+
+      <p className="mt-2 text-sm font-bold text-[#111827]">
+        {value}
+      </p>
+    </div>
+  );
+}
+
+function SidebarItem({
+  label,
+  value,
+}: {
+  label: string;
+  value: string;
+}) {
+  return (
+    <div className="flex items-start justify-between gap-4 border-b border-[#111827]/10 pb-4 last:border-b-0 last:pb-0">
+      <span className="text-xs font-semibold text-[#111827]/45">
+        {label}
+      </span>
+
+      <span className="text-right text-sm font-bold text-[#111827]">
+        {value}
+      </span>
+    </div>
+  );
+}
+
+function Step({
+  number,
+  title,
+  description,
+}: {
+  number: string;
+  title: string;
+  description: string;
+}) {
+  return (
+    <div className="flex gap-4">
+      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#2563EB] text-xs font-extrabold text-[#FFFFFF]">
+        {number}
+      </div>
+
+      <div>
+        <h3 className="text-base font-extrabold text-[#111827]">
+          {title}
+        </h3>
+
+        <p className="mt-1 text-sm leading-6 text-[#111827]/60">
+          {description}
+        </p>
+      </div>
+    </div>
+  );
+}
+
+/* =========================================================
+   FAQS
+   ========================================================= */
+
+function getFaqs(scheme: Scheme): Faq[] {
+  return [
+    {
+      question: `What is ${scheme.name}?`,
+      answer: scheme.description,
+    },
+    {
+      question: `Who can benefit from ${scheme.name}?`,
+      answer: scheme.eligibilitySummary,
+    },
+    {
+      question: "What documents may be required?",
+      answer:
+        scheme.documents.length > 0
+          ? `The documents may include: ${scheme.documents.join(
+              ", "
+            )}. Requirements can vary, so verify the current list through the official source.`
+          : "Document requirements should be verified through the official scheme source.",
+    },
+    {
+      question: "How can I apply?",
+      answer:
+        "Application procedures depend on the scheme and the responsible government department. Use the official source linked on this page to check the current application process.",
+    },
+    {
+      question:
+        "Is the information on SchemeSamjho official?",
+      answer:
+        "No. SchemeSamjho is an informational platform. The official government website or department remains the authoritative source for eligibility, benefits, documents and application decisions.",
+    },
+  ];
 }

@@ -10,28 +10,34 @@ import {
   ChevronRight,
   Filter,
   Search,
-  Sparkles,
-  SlidersHorizontal,
   ShieldCheck,
+  SlidersHorizontal,
   X,
 } from "lucide-react";
 
 import { schemes } from "../../data/schemes";
 import FavoriteButton from "../../Components/FavoriteButton";
 
+/* =========================================================
+   SCHEMESAMJHO COLOR SYSTEM
+
+   BLUE  → #2563EB
+   GREEN → #16A34A
+   WHITE → #FFFFFF
+   DARK  → #111827
+
+   No purple
+   No yellow
+   No orange
+   No red
+   No gradients
+   ========================================================= */
+
 const categories = [
   "All",
-  "Farmers",
-  "Artisans",
-  "Healthcare",
-  "Housing",
-  "Savings",
-  "Business",
-  "Students",
-  "Women",
-  "Employment",
-  "Finance",
-  "Insurance",
+  ...Array.from(
+    new Set(schemes.map((scheme) => scheme.category))
+  ).sort(),
 ];
 
 const occupations = [
@@ -114,41 +120,64 @@ function occupationMatches(
 }
 
 function formatAge(
-  minAge?: number,
-  maxAge?: number
+  minAge?: number | null,
+  maxAge?: number | null
 ) {
-  if (minAge !== undefined && maxAge !== undefined) {
+  if (minAge != null && maxAge != null) {
     return `${minAge}–${maxAge}`;
   }
 
-  if (minAge !== undefined) {
+  if (minAge != null) {
     return `${minAge}+`;
   }
 
-  if (maxAge !== undefined) {
+  if (maxAge != null) {
     return `Up to ${maxAge}`;
   }
 
   return "See rules";
 }
 
+/* =========================================================
+   MAIN PAGE CONTENT
+   ========================================================= */
+
 function SchemesPageContent() {
   const searchParams = useSearchParams();
 
-  const urlCategory = searchParams.get("category") || "All";
-  const urlSearch = searchParams.get("search") || "";
+  const urlCategory =
+    searchParams.get("category") || "All";
 
-  const initialCategory = categories.includes(urlCategory)
+  const urlSearch =
+    searchParams.get("search") || "";
+
+  const initialCategory = categories.includes(
+    urlCategory
+  )
     ? urlCategory
     : "All";
 
-  const [search, setSearch] = useState(urlSearch);
-  const [category, setCategory] = useState(initialCategory);
-  const [occupation, setOccupation] = useState("All");
-  const [income, setIncome] = useState("");
-  const [showFilters, setShowFilters] = useState(false);
+  const [search, setSearch] =
+    useState(urlSearch);
+
+  const [category, setCategory] =
+    useState(initialCategory);
+
+  const [occupation, setOccupation] =
+    useState("All");
+
+  const [income, setIncome] =
+    useState("");
+
+  const [showFilters, setShowFilters] =
+    useState(false);
+
   const [visibleCount, setVisibleCount] =
     useState(INITIAL_VISIBLE);
+
+  /* =======================================================
+     FILTERING
+     ======================================================= */
 
   const filteredSchemes = useMemo(() => {
     const query = normalize(search);
@@ -159,12 +188,13 @@ function SchemesPageContent() {
         normalize(scheme.name).includes(query) ||
         normalize(scheme.slug).includes(query) ||
         normalize(scheme.category).includes(query) ||
-        normalize(scheme.shortDescription).includes(query) ||
-        normalize(scheme.description).includes(query) ||
+        normalize(
+          scheme.shortDescription
+        ).includes(query) ||
+        normalize(
+          scheme.description
+        ).includes(query) ||
         scheme.occupations.some((item) =>
-          normalize(item).includes(query)
-        ) ||
-        scheme.keywords.some((item) =>
           normalize(item).includes(query)
         ) ||
         scheme.benefits.some((item) =>
@@ -175,17 +205,20 @@ function SchemesPageContent() {
         category === "All" ||
         scheme.category === category;
 
-      const matchesOccupation = occupationMatches(
-        scheme.occupations,
-        occupation
-      );
+      const matchesOccupation =
+        occupationMatches(
+          scheme.occupations,
+          occupation
+        );
 
       const selectedIncome =
-        income === "" ? undefined : Number(income);
+        income === ""
+          ? undefined
+          : Number(income);
 
       const matchesIncome =
         selectedIncome === undefined ||
-        scheme.maxIncome === undefined ||
+        scheme.maxIncome == null ||
         scheme.maxIncome <= selectedIncome;
 
       return (
@@ -195,235 +228,300 @@ function SchemesPageContent() {
         matchesIncome
       );
     });
-  }, [search, category, occupation, income]);
+  }, [
+    search,
+    category,
+    occupation,
+    income,
+  ]);
 
-  const visibleSchemes = filteredSchemes.slice(
-    0,
-    visibleCount
-  );
+  const visibleSchemes =
+    filteredSchemes.slice(
+      0,
+      visibleCount
+    );
 
   const hasMore =
-    visibleCount < filteredSchemes.length;
+    visibleCount <
+    filteredSchemes.length;
 
   const activeFilterCount =
     (category !== "All" ? 1 : 0) +
     (occupation !== "All" ? 1 : 0) +
     (income !== "" ? 1 : 0);
 
+  /* =======================================================
+     ACTIONS
+     ======================================================= */
+
   function clearFilters() {
     setSearch("");
     setCategory("All");
     setOccupation("All");
     setIncome("");
-    setVisibleCount(INITIAL_VISIBLE);
+    setVisibleCount(
+      INITIAL_VISIBLE
+    );
   }
 
-  function handleCategoryChange(value: string) {
+  function handleCategoryChange(
+    value: string
+  ) {
     setCategory(value);
-    setVisibleCount(INITIAL_VISIBLE);
+    setVisibleCount(
+      INITIAL_VISIBLE
+    );
   }
 
-  function handleOccupationChange(value: string) {
+  function handleOccupationChange(
+    value: string
+  ) {
     setOccupation(value);
-    setVisibleCount(INITIAL_VISIBLE);
+    setVisibleCount(
+      INITIAL_VISIBLE
+    );
   }
 
-  function handleIncomeChange(value: string) {
+  function handleIncomeChange(
+    value: string
+  ) {
     setIncome(value);
-    setVisibleCount(INITIAL_VISIBLE);
+    setVisibleCount(
+      INITIAL_VISIBLE
+    );
   }
+
+  /* =======================================================
+     PAGE
+     ======================================================= */
 
   return (
-    <main className="min-h-screen bg-[#f7f9fc] text-slate-950">
+    <main className="min-h-screen bg-[#FFFFFF] text-[#111827]">
 
-      {/* =====================================================
+      {/* ===================================================
           HERO
-      ===================================================== */}
-      <section className="relative overflow-hidden bg-[#091733]">
+          =================================================== */}
 
-        <div className="absolute -left-32 -top-32 h-96 w-96 rounded-full bg-blue-600/20 blur-3xl" />
+      <section className="bg-[#111827]">
+        <div className="mx-auto max-w-7xl px-6 py-14 sm:px-8 sm:py-16 lg:px-10 lg:py-20">
 
-        <div className="absolute -right-24 top-0 h-80 w-80 rounded-full bg-violet-600/20 blur-3xl" />
+          <div className="grid gap-10 lg:grid-cols-[1fr_280px] lg:items-center">
 
-        <div className="absolute inset-0 opacity-[0.04] [background-image:linear-gradient(rgba(255,255,255,.6)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,.6)_1px,transparent_1px)] [background-size:45px_45px]" />
-
-        <div className="relative mx-auto max-w-7xl px-4 py-14 sm:px-6 lg:px-8 lg:py-18">
-
-          <div className="grid gap-10 lg:grid-cols-[1fr_300px] lg:items-center">
+            {/* Hero content */}
 
             <div>
 
-              <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.06] px-4 py-2 text-xs font-bold text-blue-200">
-                <Sparkles className="h-4 w-4" />
+              <div className="inline-flex items-center gap-2 rounded-full border border-[#FFFFFF]/20 px-4 py-2 text-sm font-semibold text-[#FFFFFF]">
+                <Search
+                  className="h-4 w-4"
+                />
                 Discover government schemes
               </div>
 
-              <h1 className="mt-6 max-w-3xl text-4xl font-black leading-tight tracking-tight text-white sm:text-5xl lg:text-6xl">
-                Find schemes that may
-                <span className="block bg-gradient-to-r from-blue-300 via-white to-amber-300 bg-clip-text text-transparent">
-                  fit your needs.
-                </span>
+              <h1 className="mt-6 max-w-3xl text-4xl font-extrabold leading-[1.05] tracking-tight text-[#FFFFFF] sm:text-5xl lg:text-6xl">
+                Find schemes that may fit your needs.
               </h1>
 
-              <p className="mt-5 max-w-2xl text-base leading-7 text-slate-300 sm:text-lg">
-                Search government schemes by your needs, occupation,
-                category or income. Understand the details before
-                visiting the official source.
+              <p className="mt-5 max-w-2xl text-base leading-7 text-[#FFFFFF]/75 sm:text-lg">
+                Search government schemes by your needs,
+                occupation, category or income. Understand
+                the details before visiting the official source.
               </p>
 
               {/* Search */}
-              <div className="mt-8 max-w-3xl">
 
-                <div className="relative rounded-2xl bg-white p-1.5 shadow-2xl shadow-black/30">
+              <div className="mt-7 max-w-3xl">
 
-                  <Search className="pointer-events-none absolute left-5 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-400" />
+                <div className="relative rounded-xl bg-[#FFFFFF] p-1.5">
+
+                  <Search
+                    className="pointer-events-none absolute left-5 top-1/2 h-5 w-5 -translate-y-1/2 text-[#111827]/45"
+                  />
 
                   <input
                     type="text"
                     value={search}
                     onChange={(event) => {
-                      setSearch(event.target.value);
-                      setVisibleCount(INITIAL_VISIBLE);
+                      setSearch(
+                        event.target.value
+                      );
+                      setVisibleCount(
+                        INITIAL_VISIBLE
+                      );
                     }}
                     placeholder="Search farmer, student, pension, housing..."
-                    className="h-14 w-full rounded-xl bg-white pl-12 pr-4 text-sm font-medium text-slate-900 outline-none placeholder:text-slate-400"
+                    className="h-12 w-full rounded-lg bg-[#FFFFFF] pl-12 pr-4 text-sm font-medium text-[#111827] outline-none placeholder:text-[#111827]/45"
                   />
 
                 </div>
-
               </div>
 
               {/* Quick categories */}
-              <div className="mt-5 flex flex-wrap gap-2">
 
-                {["Farmers", "Students", "Healthcare", "Business"].map(
-                  (item) => (
-                    <button
-                      key={item}
-                      type="button"
-                      onClick={() => handleCategoryChange(item)}
-                      className="rounded-full border border-white/10 bg-white/[0.06] px-4 py-2 text-xs font-semibold text-slate-300 transition hover:border-white/20 hover:bg-white/10 hover:text-white"
-                    >
-                      {item}
-                    </button>
-                  )
-                )}
+              <div className="mt-4 flex flex-wrap gap-2">
+
+                {[
+                  "Farmers",
+                  "Students",
+                  "Healthcare",
+                  "Business",
+                ].map((item) => (
+                  <button
+                    key={item}
+                    type="button"
+                    onClick={() =>
+                      handleCategoryChange(item)
+                    }
+                    className="rounded-full border border-[#FFFFFF]/20 px-4 py-2 text-sm font-semibold text-[#FFFFFF]/80 transition hover:border-[#2563EB] hover:bg-[#2563EB] hover:text-[#FFFFFF]"
+                  >
+                    {item}
+                  </button>
+                ))}
 
               </div>
 
             </div>
 
-            {/* Hero stats */}
+            {/* Hero helper card */}
+
             <div className="hidden lg:block">
 
-              <div className="rounded-3xl border border-white/10 bg-white/[0.07] p-5 backdrop-blur">
+              <div className="rounded-2xl border border-[#FFFFFF]/15 bg-[#FFFFFF]/10 p-4">
 
-                <p className="text-xs font-black uppercase tracking-wider text-slate-400">
+                <p className="text-xs font-bold uppercase tracking-wider text-[#FFFFFF]/60">
                   Explore smarter
                 </p>
 
-                <div className="mt-5 space-y-3">
+                <div className="mt-4 space-y-2.5">
 
-                  <div className="rounded-2xl bg-white p-4">
+                  {/* Search */}
+
+                  <div className="rounded-xl bg-[#FFFFFF] p-4">
+
                     <div className="flex items-center gap-3">
-                      <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-50">
-                        <Search className="h-5 w-5 text-blue-600" />
+
+                      <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-[#2563EB]/10">
+                        <Search
+                          className="h-5 w-5 text-[#2563EB]"
+                        />
                       </div>
 
                       <div>
-                        <p className="text-sm font-black text-slate-900">
+                        <p className="text-sm font-bold text-[#111827]">
                           Search
                         </p>
 
-                        <p className="text-xs text-slate-500">
+                        <p className="text-xs text-[#111827]/55">
                           Find by keyword
                         </p>
                       </div>
+
                     </div>
                   </div>
 
-                  <div className="rounded-2xl bg-white p-4">
+                  {/* Filter */}
+
+                  <div className="rounded-xl bg-[#FFFFFF] p-4">
+
                     <div className="flex items-center gap-3">
-                      <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-violet-50">
-                        <SlidersHorizontal className="h-5 w-5 text-violet-600" />
+
+                      <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-[#2563EB]/10">
+                        <SlidersHorizontal
+                          className="h-5 w-5 text-[#2563EB]"
+                        />
                       </div>
 
                       <div>
-                        <p className="text-sm font-black text-slate-900">
+                        <p className="text-sm font-bold text-[#111827]">
                           Filter
                         </p>
 
-                        <p className="text-xs text-slate-500">
+                        <p className="text-xs text-[#111827]/55">
                           Narrow your options
                         </p>
                       </div>
+
                     </div>
                   </div>
 
-                  <div className="rounded-2xl bg-white p-4">
+                  {/* Verify */}
+
+                  <div className="rounded-xl bg-[#FFFFFF] p-4">
+
                     <div className="flex items-center gap-3">
-                      <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-50">
-                        <ShieldCheck className="h-5 w-5 text-emerald-600" />
+
+                      <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-[#16A34A]/10">
+                        <ShieldCheck
+                          className="h-5 w-5 text-[#16A34A]"
+                        />
                       </div>
 
                       <div>
-                        <p className="text-sm font-black text-slate-900">
+                        <p className="text-sm font-bold text-[#111827]">
                           Verify
                         </p>
 
-                        <p className="text-xs text-slate-500">
+                        <p className="text-xs text-[#111827]/55">
                           Check official sources
                         </p>
                       </div>
+
                     </div>
                   </div>
 
                 </div>
-
               </div>
-
             </div>
 
           </div>
         </div>
       </section>
 
-      {/* =====================================================
+      {/* ===================================================
           FILTER + RESULTS
-      ===================================================== */}
-      <section className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
+          =================================================== */}
 
-        <div className="grid gap-8 lg:grid-cols-[260px_1fr]">
+      <section className="mx-auto max-w-7xl px-6 py-10 sm:px-8 lg:px-10">
+
+        <div className="grid gap-8 lg:grid-cols-[240px_1fr]">
 
           {/* =================================================
               DESKTOP SIDEBAR
-          ================================================= */}
+              ================================================= */}
+
           <aside className="hidden lg:block">
 
-            <div className="sticky top-24 rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
+            <div className="sticky top-24 rounded-2xl border border-[#111827]/10 bg-[#FFFFFF] p-5">
+
+              {/* Filter heading */}
 
               <div className="flex items-center justify-between">
 
                 <div className="flex items-center gap-2">
-                  <Filter className="h-4 w-4 text-blue-600" />
 
-                  <h2 className="font-black text-slate-900">
+                  <Filter
+                    className="h-4 w-4 text-[#2563EB]"
+                  />
+
+                  <h2 className="text-base font-bold text-[#111827]">
                     Filters
                   </h2>
+
                 </div>
 
                 {activeFilterCount > 0 && (
-                  <span className="rounded-full bg-blue-600 px-2 py-1 text-[10px] font-black text-white">
+                  <span className="rounded-full bg-[#2563EB] px-2 py-1 text-[10px] font-bold text-[#FFFFFF]">
                     {activeFilterCount}
                   </span>
                 )}
 
               </div>
 
-              {/* Categories */}
+              {/* Category */}
+
               <div className="mt-6">
 
-                <p className="text-xs font-black uppercase tracking-wider text-slate-400">
+                <p className="text-xs font-bold uppercase tracking-wider text-[#111827]/50">
                   Category
                 </p>
 
@@ -434,12 +532,14 @@ function SchemesPageContent() {
                       key={item}
                       type="button"
                       onClick={() =>
-                        handleCategoryChange(item)
+                        handleCategoryChange(
+                          item
+                        )
                       }
-                      className={`flex w-full items-center justify-between rounded-xl px-3 py-2.5 text-sm font-semibold transition ${
+                      className={`flex w-full items-center justify-between rounded-lg px-3 py-2.5 text-sm font-semibold transition ${
                         category === item
-                          ? "bg-blue-50 text-blue-700"
-                          : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"
+                          ? "bg-[#2563EB]/10 text-[#2563EB]"
+                          : "text-[#111827]/70 hover:bg-[#111827]/5 hover:text-[#111827]"
                       }`}
                     >
                       {item}
@@ -451,15 +551,15 @@ function SchemesPageContent() {
                   ))}
 
                 </div>
-
               </div>
 
               {/* Occupation */}
-              <div className="mt-7 border-t border-slate-100 pt-6">
+
+              <div className="mt-6 border-t border-[#111827]/10 pt-5">
 
                 <label
                   htmlFor="desktop-occupation"
-                  className="text-xs font-black uppercase tracking-wider text-slate-400"
+                  className="text-xs font-bold uppercase tracking-wider text-[#111827]/50"
                 >
                   Occupation
                 </label>
@@ -474,27 +574,32 @@ function SchemesPageContent() {
                         event.target.value
                       )
                     }
-                    className="w-full appearance-none rounded-xl border border-slate-200 bg-slate-50 px-3 py-3 pr-9 text-sm font-medium text-slate-700 outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-100"
+                    className="w-full appearance-none rounded-lg border border-[#111827]/15 bg-[#FFFFFF] px-3 py-2.5 pr-9 text-sm font-medium text-[#111827] outline-none focus:border-[#2563EB] focus:ring-2 focus:ring-[#2563EB]/10"
                   >
-                    {occupations.map((item) => (
-                      <option key={item} value={item}>
-                        {item}
-                      </option>
-                    ))}
+                    {occupations.map(
+                      (item) => (
+                        <option
+                          key={item}
+                          value={item}
+                        >
+                          {item}
+                        </option>
+                      )
+                    )}
                   </select>
 
-                  <ChevronDown className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+                  <ChevronDown className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#111827]/50" />
 
                 </div>
-
               </div>
 
               {/* Income */}
+
               <div className="mt-5">
 
                 <label
                   htmlFor="desktop-income"
-                  className="text-xs font-black uppercase tracking-wider text-slate-400"
+                  className="text-xs font-bold uppercase tracking-wider text-[#111827]/50"
                 >
                   Annual income
                 </label>
@@ -505,31 +610,37 @@ function SchemesPageContent() {
                     id="desktop-income"
                     value={income}
                     onChange={(event) =>
-                      handleIncomeChange(event.target.value)
+                      handleIncomeChange(
+                        event.target.value
+                      )
                     }
-                    className="w-full appearance-none rounded-xl border border-slate-200 bg-slate-50 px-3 py-3 pr-9 text-sm font-medium text-slate-700 outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-100"
+                    className="w-full appearance-none rounded-lg border border-[#111827]/15 bg-[#FFFFFF] px-3 py-2.5 pr-9 text-sm font-medium text-[#111827] outline-none focus:border-[#2563EB] focus:ring-2 focus:ring-[#2563EB]/10"
                   >
-                    {incomeOptions.map((item) => (
-                      <option
-                        key={item.value}
-                        value={item.value}
-                      >
-                        {item.label}
-                      </option>
-                    ))}
+                    {incomeOptions.map(
+                      (item) => (
+                        <option
+                          key={item.value}
+                          value={item.value}
+                        >
+                          {item.label}
+                        </option>
+                      )
+                    )}
                   </select>
 
-                  <ChevronDown className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+                  <ChevronDown className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#111827]/50" />
 
                 </div>
-
               </div>
 
-              {(activeFilterCount > 0 || search.trim()) && (
+              {/* Clear */}
+
+              {(activeFilterCount > 0 ||
+                search.trim()) && (
                 <button
                   type="button"
                   onClick={clearFilters}
-                  className="mt-6 flex w-full items-center justify-center gap-2 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-xs font-bold text-red-600 transition hover:bg-red-100"
+                  className="mt-5 flex w-full items-center justify-center gap-2 rounded-lg border border-[#111827]/15 px-4 py-2.5 text-xs font-bold text-[#111827] transition hover:border-[#2563EB] hover:text-[#2563EB]"
                 >
                   <X className="h-4 w-4" />
                   Clear all filters
@@ -537,41 +648,51 @@ function SchemesPageContent() {
               )}
 
             </div>
-
           </aside>
 
           {/* =================================================
-              RESULTS COLUMN
-          ================================================= */}
+              RESULTS
+              ================================================= */}
+
           <div>
 
-            {/* Mobile filter */}
+            {/* Mobile filters */}
+
             <div className="lg:hidden">
 
               <button
                 type="button"
                 onClick={() =>
-                  setShowFilters((current) => !current)
+                  setShowFilters(
+                    (current) => !current
+                  )
                 }
-                className="flex w-full items-center justify-between rounded-2xl border border-slate-200 bg-white px-4 py-3.5 text-sm font-bold text-slate-800 shadow-sm"
+                className="flex w-full items-center justify-between rounded-xl border border-[#111827]/10 bg-[#FFFFFF] px-4 py-3 text-sm font-bold text-[#111827]"
               >
 
                 <span className="flex items-center gap-2">
-                  <SlidersHorizontal className="h-4 w-4 text-blue-600" />
+
+                  <SlidersHorizontal
+                    className="h-4 w-4 text-[#2563EB]"
+                  />
+
                   Filters
+
                 </span>
 
                 <span className="flex items-center gap-2">
 
                   {activeFilterCount > 0 && (
-                    <span className="rounded-full bg-blue-600 px-2 py-1 text-[10px] font-black text-white">
+                    <span className="rounded-full bg-[#2563EB] px-2 py-1 text-[10px] font-bold text-[#FFFFFF]">
                       {activeFilterCount}
                     </span>
                   )}
 
                   <ChevronDown
                     className={`h-4 w-4 transition ${
-                      showFilters ? "rotate-180" : ""
+                      showFilters
+                        ? "rotate-180"
+                        : ""
                     }`}
                   />
 
@@ -580,30 +701,34 @@ function SchemesPageContent() {
               </button>
 
               {showFilters && (
-                <div className="mt-3 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+                <div className="mt-3 rounded-xl border border-[#111827]/10 bg-[#FFFFFF] p-5">
 
-                  <p className="text-xs font-black uppercase tracking-wider text-slate-400">
+                  <p className="text-xs font-bold uppercase tracking-wider text-[#111827]/50">
                     Category
                   </p>
 
                   <div className="mt-3 flex flex-wrap gap-2">
 
-                    {categories.map((item) => (
-                      <button
-                        key={item}
-                        type="button"
-                        onClick={() =>
-                          handleCategoryChange(item)
-                        }
-                        className={`rounded-full px-3 py-2 text-xs font-bold transition ${
-                          category === item
-                            ? "bg-blue-600 text-white"
-                            : "border border-slate-200 bg-white text-slate-600"
-                        }`}
-                      >
-                        {item}
-                      </button>
-                    ))}
+                    {categories.map(
+                      (item) => (
+                        <button
+                          key={item}
+                          type="button"
+                          onClick={() =>
+                            handleCategoryChange(
+                              item
+                            )
+                          }
+                          className={`rounded-full px-3 py-2 text-xs font-bold transition ${
+                            category === item
+                              ? "bg-[#2563EB] text-[#FFFFFF]"
+                              : "border border-[#111827]/15 bg-[#FFFFFF] text-[#111827]/70 hover:border-[#2563EB] hover:text-[#2563EB]"
+                          }`}
+                        >
+                          {item}
+                        </button>
+                      )
+                    )}
 
                   </div>
 
@@ -616,30 +741,39 @@ function SchemesPageContent() {
                           event.target.value
                         )
                       }
-                      className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-3 text-sm font-medium text-slate-700 outline-none"
+                      className="rounded-lg border border-[#111827]/15 bg-[#FFFFFF] px-3 py-2.5 text-sm font-medium text-[#111827] outline-none focus:border-[#2563EB]"
                     >
-                      {occupations.map((item) => (
-                        <option key={item} value={item}>
-                          {item}
-                        </option>
-                      ))}
+                      {occupations.map(
+                        (item) => (
+                          <option
+                            key={item}
+                            value={item}
+                          >
+                            {item}
+                          </option>
+                        )
+                      )}
                     </select>
 
                     <select
                       value={income}
                       onChange={(event) =>
-                        handleIncomeChange(event.target.value)
+                        handleIncomeChange(
+                          event.target.value
+                        )
                       }
-                      className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-3 text-sm font-medium text-slate-700 outline-none"
+                      className="rounded-lg border border-[#111827]/15 bg-[#FFFFFF] px-3 py-2.5 text-sm font-medium text-[#111827] outline-none focus:border-[#2563EB]"
                     >
-                      {incomeOptions.map((item) => (
-                        <option
-                          key={item.value}
-                          value={item.value}
-                        >
-                          {item.label}
-                        </option>
-                      ))}
+                      {incomeOptions.map(
+                        (item) => (
+                          <option
+                            key={item.value}
+                            value={item.value}
+                          >
+                            {item.label}
+                          </option>
+                        )
+                      )}
                     </select>
 
                   </div>
@@ -648,7 +782,7 @@ function SchemesPageContent() {
                     <button
                       type="button"
                       onClick={clearFilters}
-                      className="mt-4 text-xs font-bold text-red-600"
+                      className="mt-4 text-xs font-bold text-[#2563EB]"
                     >
                       Clear filters
                     </button>
@@ -660,19 +794,20 @@ function SchemesPageContent() {
             </div>
 
             {/* Results header */}
+
             <div className="mt-6 flex flex-col justify-between gap-4 sm:flex-row sm:items-end lg:mt-0">
 
               <div>
 
-                <p className="text-xs font-black uppercase tracking-wider text-blue-600">
+                <p className="text-xs font-bold uppercase tracking-wider text-[#2563EB]">
                   Scheme directory
                 </p>
 
-                <h2 className="mt-1 text-2xl font-black tracking-tight text-slate-950 sm:text-3xl">
+                <h2 className="mt-1 text-2xl font-extrabold tracking-tight text-[#111827] sm:text-3xl">
                   Explore schemes
                 </h2>
 
-                <p className="mt-1 text-sm text-slate-500">
+                <p className="mt-1 text-sm text-[#111827]/60">
                   {filteredSchemes.length}{" "}
                   {filteredSchemes.length === 1
                     ? "scheme"
@@ -684,7 +819,7 @@ function SchemesPageContent() {
 
               <Link
                 href="/eligibility"
-                className="inline-flex items-center gap-1 text-sm font-bold text-blue-600 hover:text-blue-700"
+                className="inline-flex items-center gap-1 text-sm font-bold text-[#2563EB] transition hover:text-[#111827]"
               >
                 Not sure what to choose?
                 <ArrowRight className="h-4 w-4" />
@@ -692,40 +827,49 @@ function SchemesPageContent() {
 
             </div>
 
-            {/* Active chips */}
-            {(activeFilterCount > 0 || search.trim()) && (
-              <div className="mt-5 flex flex-wrap gap-2">
+            {/* Active filters */}
+
+            {(activeFilterCount > 0 ||
+              search.trim()) && (
+              <div className="mt-4 flex flex-wrap gap-2">
 
                 {search.trim() && (
-                  <span className="flex items-center gap-1.5 rounded-full bg-slate-900 px-3 py-1.5 text-xs font-bold text-white">
+                  <span className="flex items-center gap-1.5 rounded-full bg-[#111827] px-3 py-1.5 text-xs font-bold text-[#FFFFFF]">
+
                     Search: {search}
 
                     <button
                       type="button"
-                      onClick={() => setSearch("")}
+                      onClick={() =>
+                        setSearch("")
+                      }
+                      aria-label="Clear search"
                     >
                       <X className="h-3 w-3" />
                     </button>
+
                   </span>
                 )}
 
                 {category !== "All" && (
-                  <span className="rounded-full bg-blue-50 px-3 py-1.5 text-xs font-bold text-blue-700">
+                  <span className="rounded-full bg-[#2563EB]/10 px-3 py-1.5 text-xs font-bold text-[#2563EB]">
                     {category}
                   </span>
                 )}
 
                 {occupation !== "All" && (
-                  <span className="rounded-full bg-violet-50 px-3 py-1.5 text-xs font-bold text-violet-700">
+                  <span className="rounded-full bg-[#16A34A]/10 px-3 py-1.5 text-xs font-bold text-[#16A34A]">
                     {occupation}
                   </span>
                 )}
 
                 {income !== "" && (
-                  <span className="rounded-full bg-amber-50 px-3 py-1.5 text-xs font-bold text-amber-700">
+                  <span className="rounded-full bg-[#111827]/5 px-3 py-1.5 text-xs font-bold text-[#111827]">
                     {
                       incomeOptions.find(
-                        (item) => item.value === income
+                        (item) =>
+                          item.value ===
+                          income
                       )?.label
                     }
                   </span>
@@ -734,27 +878,30 @@ function SchemesPageContent() {
               </div>
             )}
 
-            {/* Empty state */}
-            {filteredSchemes.length === 0 ? (
-              <div className="mt-7 rounded-3xl border border-slate-200 bg-white px-6 py-16 text-center shadow-sm">
+            {/* =================================================
+                EMPTY STATE
+                ================================================= */}
 
-                <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-blue-50">
-                  <Search className="h-7 w-7 text-blue-600" />
+            {filteredSchemes.length === 0 ? (
+              <div className="mt-7 rounded-2xl border border-[#111827]/10 bg-[#FFFFFF] px-6 py-14 text-center">
+
+                <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-xl bg-[#2563EB]/10">
+                  <Search className="h-6 w-6 text-[#2563EB]" />
                 </div>
 
-                <h3 className="mt-5 text-xl font-black text-slate-950">
+                <h3 className="mt-5 text-xl font-extrabold text-[#111827]">
                   No matching schemes
                 </h3>
 
-                <p className="mx-auto mt-2 max-w-md text-sm leading-6 text-slate-500">
-                  Try another keyword or remove some filters to
-                  see more schemes.
+                <p className="mx-auto mt-2 max-w-md text-sm leading-6 text-[#111827]/60">
+                  Try another keyword or remove some
+                  filters to see more schemes.
                 </p>
 
                 <button
                   type="button"
                   onClick={clearFilters}
-                  className="mt-6 rounded-xl bg-blue-600 px-5 py-3 text-sm font-black text-white transition hover:bg-blue-700"
+                  className="mt-5 rounded-lg bg-[#2563EB] px-5 py-2.5 text-sm font-bold text-[#FFFFFF] transition hover:bg-[#111827]"
                 >
                   Clear Filters
                 </button>
@@ -762,155 +909,179 @@ function SchemesPageContent() {
               </div>
             ) : (
               <>
-                {/* Scheme cards */}
+
+                {/* =================================================
+                    SCHEME CARDS
+                    ================================================= */}
+
                 <div className="mt-7 grid gap-5 md:grid-cols-2">
 
-                  {visibleSchemes.map((scheme, index) => (
-                    <article
-                      key={scheme.slug}
-                      className="group relative flex flex-col overflow-hidden rounded-3xl border border-slate-200 bg-white p-6 shadow-sm transition duration-300 hover:-translate-y-1 hover:border-blue-200 hover:shadow-xl"
-                    >
+                  {visibleSchemes.map(
+                    (scheme) => (
+                      <article
+                        key={scheme.slug}
+                        className="group relative flex flex-col overflow-hidden rounded-2xl border border-[#111827]/10 bg-[#FFFFFF] p-5 transition duration-200 hover:-translate-y-0.5 hover:border-[#2563EB]/40"
+                      >
 
-                      {/* Top accent */}
-                      <div className="absolute left-0 right-0 top-0 h-1 bg-gradient-to-r from-blue-500 via-indigo-500 to-violet-500 opacity-0 transition group-hover:opacity-100" />
+                        {/* Header */}
 
-                      {/* Card header */}
-                      <div className="flex items-start justify-between gap-3">
+                        <div className="flex items-start justify-between gap-3">
 
-                        <div className="flex items-center gap-3">
+                          <div className="flex items-center gap-3">
 
-                          <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-blue-50 text-xl">
-                            {index % 3 === 0
-                              ? "🇮🇳"
-                              : index % 3 === 1
-                                ? "✨"
-                                : "🛡️"}
+                            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#2563EB]/10 text-[#2563EB]">
+                              <ShieldCheck className="h-5 w-5" />
+                            </div>
+
+                            <div>
+
+                              <span className="text-[11px] font-bold uppercase tracking-wider text-[#2563EB]">
+                                {scheme.category}
+                              </span>
+
+                              <p className="mt-0.5 text-xs text-[#111827]/50">
+                                Government scheme
+                              </p>
+
+                            </div>
+
                           </div>
 
-                          <div>
-                            <span className="text-[10px] font-black uppercase tracking-wider text-blue-600">
-                              {scheme.category}
-                            </span>
+                          <FavoriteButton
+                            slug={scheme.slug}
+                          />
 
-                            <p className="mt-0.5 text-xs text-slate-400">
-                              Scheme
+                        </div>
+
+                        {/* Title */}
+
+                        <h3 className="mt-5 text-xl font-extrabold leading-7 tracking-tight text-[#111827] transition group-hover:text-[#2563EB]">
+                          {scheme.name}
+                        </h3>
+
+                        {/* Description */}
+
+                        <p className="mt-2 line-clamp-3 text-sm leading-6 text-[#111827]/65">
+                          {scheme.shortDescription}
+                        </p>
+
+                        {/* Facts */}
+
+                        <div className="mt-5 grid grid-cols-2 gap-2">
+
+                          <div className="rounded-xl bg-[#111827]/5 p-3">
+
+                            <p className="text-[10px] font-bold uppercase tracking-wider text-[#111827]/50">
+                              Age
                             </p>
+
+                            <p className="mt-1 text-sm font-bold text-[#111827]">
+                              {formatAge(
+                                scheme.minAge,
+                                scheme.maxAge
+                              )}
+                            </p>
+
+                          </div>
+
+                          <div className="rounded-xl bg-[#111827]/5 p-3">
+
+                            <p className="text-[10px] font-bold uppercase tracking-wider text-[#111827]/50">
+                              Income
+                            </p>
+
+                            <p className="mt-1 truncate text-sm font-bold text-[#111827]">
+                              {scheme.maxIncome != null
+                                ? `₹${scheme.maxIncome.toLocaleString(
+                                    "en-IN"
+                                      )}`
+                                     : "See rules"}
+                            </p>
+
                           </div>
 
                         </div>
 
-                        <FavoriteButton slug={scheme.slug} />
+                        {/* Benefit */}
 
-                      </div>
+                        {scheme.benefits.length >
+                          0 && (
+                          <div className="mt-3 flex items-start gap-2 rounded-xl bg-[#16A34A]/10 p-3">
 
-                      {/* Title */}
-                      <h3 className="mt-6 text-xl font-black leading-7 text-slate-950 transition group-hover:text-blue-700">
-                        {scheme.name}
-                      </h3>
+                            <Check className="mt-0.5 h-4 w-4 shrink-0 text-[#16A34A]" />
 
-                      <p className="mt-3 line-clamp-3 text-sm leading-6 text-slate-500">
-                        {scheme.shortDescription}
-                      </p>
+                            <p className="line-clamp-2 text-xs font-semibold leading-5 text-[#16A34A]">
+                              {
+                                scheme
+                                  .benefits[0]
+                              }
+                            </p>
 
-                      {/* Facts */}
-                      <div className="mt-6 grid grid-cols-2 gap-2">
+                          </div>
+                        )}
 
-                        <div className="rounded-2xl bg-slate-50 p-3.5">
-                          <p className="text-[10px] font-black uppercase tracking-wider text-slate-400">
-                            Age
-                          </p>
+                        {/* Actions */}
 
-                          <p className="mt-1 text-sm font-black text-slate-800">
-                            {formatAge(
-                              scheme.minAge,
-                              scheme.maxAge
-                            )}
-                          </p>
-                        </div>
+                        <div className="mt-5 flex gap-2">
 
-                        <div className="rounded-2xl bg-slate-50 p-3.5">
-                          <p className="text-[10px] font-black uppercase tracking-wider text-slate-400">
-                            Income
-                          </p>
+                          <Link
+                            href={`/schemes/${scheme.slug}`}
+                            className="flex flex-1 items-center justify-center gap-1.5 rounded-lg bg-[#2563EB] px-4 py-2.5 text-sm font-bold text-[#FFFFFF] transition hover:bg-[#111827]"
+                          >
+                            View Scheme
+                            <ArrowRight className="h-4 w-4" />
+                          </Link>
 
-                          <p className="mt-1 truncate text-sm font-black text-slate-800">
-                            {scheme.maxIncome !== undefined
-                              ? `₹${scheme.maxIncome.toLocaleString(
-                                  "en-IN"
-                                )}`
-                              : "See rules"}
-                          </p>
-                        </div>
-
-                      </div>
-
-                      {/* Benefits preview */}
-                      {scheme.benefits.length > 0 && (
-                        <div className="mt-4 flex items-start gap-2 rounded-2xl bg-emerald-50/70 p-3.5">
-
-                          <Check className="mt-0.5 h-4 w-4 shrink-0 text-emerald-600" />
-
-                          <p className="line-clamp-2 text-xs font-semibold leading-5 text-emerald-800">
-                            {scheme.benefits[0]}
-                          </p>
+                          <Link
+                            href={`/explainers/${scheme.slug}`}
+                            className="flex items-center justify-center rounded-lg border border-[#111827]/15 px-4 py-2.5 text-sm font-bold text-[#111827] transition hover:border-[#2563EB] hover:text-[#2563EB]"
+                          >
+                            Explainer
+                          </Link>
 
                         </div>
-                      )}
 
-                      {/* Actions */}
-                      <div className="mt-6 flex gap-2">
+                        {/* Footer */}
 
-                        <Link
-                          href={`/schemes/${scheme.slug}`}
-                          className="flex flex-1 items-center justify-center gap-1.5 rounded-xl bg-blue-600 px-4 py-3 text-sm font-black text-white transition hover:bg-blue-700"
-                        >
-                          View Scheme
-                          <ArrowRight className="h-4 w-4" />
-                        </Link>
+                        <div className="mt-4 flex items-center justify-between border-t border-[#111827]/10 pt-3">
 
-                        <Link
-                          href={`/explainers/${scheme.slug}`}
-                          className="flex items-center justify-center rounded-xl border border-slate-200 px-4 py-3 text-sm font-bold text-slate-700 transition hover:border-blue-200 hover:text-blue-600"
-                        >
-                          Explainer
-                        </Link>
+                          <span className="text-[11px] text-[#111827]/50">
+                            Reviewed{" "}
+                            {scheme.lastVerified}
+                          </span>
 
-                      </div>
+                          <Link
+                            href={`/schemes/${scheme.slug}`}
+                            className="flex items-center gap-1 text-xs font-bold text-[#111827]/50 transition hover:text-[#2563EB]"
+                          >
+                            Details
+                            <ChevronRight className="h-3.5 w-3.5" />
+                          </Link>
 
-                      {/* Footer */}
-                      <div className="mt-4 flex items-center justify-between border-t border-slate-100 pt-4">
+                        </div>
 
-                        <span className="text-[11px] text-slate-400">
-                          Reviewed {scheme.lastVerified}
-                        </span>
-
-                        <Link
-                          href={`/schemes/${scheme.slug}`}
-                          className="flex items-center gap-1 text-xs font-bold text-slate-400 transition hover:text-blue-600"
-                        >
-                          Details
-                          <ChevronRight className="h-3.5 w-3.5" />
-                        </Link>
-
-                      </div>
-
-                    </article>
-                  ))}
+                      </article>
+                    )
+                  )}
 
                 </div>
 
-                {/* Load more */}
+                {/* =================================================
+                    LOAD MORE
+                    ================================================= */}
+
                 {hasMore && (
-                  <div className="mt-10 text-center">
+                  <div className="mt-8 text-center">
 
                     <button
                       type="button"
                       onClick={() =>
                         setVisibleCount(
-                          (current) => current + 6
+                          (current) =>
+                            current + 6
                         )
                       }
-                      className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-7 py-3.5 text-sm font-black text-slate-700 shadow-sm transition hover:border-blue-300 hover:text-blue-600 hover:shadow-md"
+                      className="inline-flex items-center gap-2 rounded-lg border border-[#111827]/15 bg-[#FFFFFF] px-6 py-3 text-sm font-bold text-[#111827] transition hover:border-[#2563EB] hover:text-[#2563EB]"
                     >
                       Load More Schemes
                       <ChevronDown className="h-4 w-4" />
@@ -926,42 +1097,40 @@ function SchemesPageContent() {
         </div>
       </section>
 
-      {/* =====================================================
+      {/* ===================================================
           ELIGIBILITY CTA
-      ===================================================== */}
-      <section className="px-4 pb-16 sm:px-6 lg:px-8">
+          =================================================== */}
 
-        <div className="mx-auto max-w-7xl overflow-hidden rounded-[32px] bg-[#101b35]">
+      <section className="px-6 pb-14 sm:px-8 lg:px-10">
 
-          <div className="relative p-8 sm:p-10 lg:p-12">
+        <div className="mx-auto max-w-7xl rounded-2xl bg-[#111827]">
 
-            <div className="absolute right-[-80px] top-[-100px] h-80 w-80 rounded-full bg-blue-500/20 blur-3xl" />
+          <div className="p-7 sm:p-9 lg:p-10">
 
-            <div className="relative grid gap-8 lg:grid-cols-[1fr_350px] lg:items-center">
+            <div className="grid gap-8 lg:grid-cols-[1fr_320px] lg:items-center">
+
+              {/* CTA text */}
 
               <div>
 
-                <div className="inline-flex items-center gap-2 rounded-full bg-blue-500/10 px-4 py-2 text-xs font-bold text-blue-300">
-                  <Sparkles className="h-4 w-4" />
+                <div className="inline-flex items-center gap-2 rounded-full bg-[#2563EB]/10 px-4 py-2 text-xs font-bold text-[#FFFFFF]">
+                  <ShieldCheck className="h-4 w-4 text-[#16A34A]" />
                   Need a little help?
                 </div>
 
-                <h2 className="mt-5 max-w-2xl text-3xl font-black text-white sm:text-4xl">
-                  Let your profile guide
-                  <span className="text-amber-300">
-                    {" "}your search.
-                  </span>
+                <h2 className="mt-4 max-w-2xl text-3xl font-extrabold tracking-tight text-[#FFFFFF] sm:text-4xl">
+                  Let your profile guide your search.
                 </h2>
 
-                <p className="mt-4 max-w-2xl text-sm leading-7 text-slate-300 sm:text-base">
-                  Answer a few questions about your age, occupation,
-                  income and state to discover schemes that may match
-                  your profile.
+                <p className="mt-4 max-w-2xl text-sm leading-7 text-[#FFFFFF]/70 sm:text-base">
+                  Answer a few questions about your age,
+                  occupation, income and state to discover
+                  schemes that may match your profile.
                 </p>
 
                 <Link
                   href="/eligibility"
-                  className="mt-7 inline-flex items-center gap-2 rounded-xl bg-amber-400 px-6 py-3.5 text-sm font-black text-slate-950 transition hover:bg-amber-300"
+                  className="mt-6 inline-flex items-center gap-2 rounded-lg bg-[#2563EB] px-5 py-3 text-sm font-bold text-[#FFFFFF] transition hover:bg-[#FFFFFF] hover:text-[#111827]"
                 >
                   Check My Eligibility
                   <ArrowRight className="h-4 w-4" />
@@ -969,41 +1138,45 @@ function SchemesPageContent() {
 
               </div>
 
-              <div className="rounded-3xl border border-white/10 bg-white/5 p-5">
+              {/* Quick profile */}
 
-                <p className="text-xs font-black uppercase tracking-wider text-slate-400">
+              <div className="rounded-xl border border-[#FFFFFF]/15 bg-[#FFFFFF]/5 p-4">
+
+                <p className="text-xs font-bold uppercase tracking-wider text-[#FFFFFF]/50">
                   Quick profile
                 </p>
 
-                <div className="mt-4 space-y-2">
+                <div className="mt-3 space-y-2">
 
                   {[
                     "Age",
                     "Occupation",
                     "Annual income",
                     "State",
-                  ].map((item, index) => (
-                    <div
-                      key={item}
-                      className="flex items-center justify-between rounded-xl bg-white/5 px-4 py-3"
-                    >
+                  ].map(
+                    (item, index) => (
+                      <div
+                        key={item}
+                        className="flex items-center justify-between rounded-lg border border-[#FFFFFF]/10 px-3 py-2.5"
+                      >
 
-                      <div className="flex items-center gap-3">
+                        <div className="flex items-center gap-3">
 
-                        <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-white/10 text-[10px] font-black text-slate-400">
-                          {index + 1}
-                        </span>
+                          <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-[#FFFFFF]/10 text-[10px] font-bold text-[#FFFFFF]/60">
+                            {index + 1}
+                          </span>
 
-                        <span className="text-sm font-semibold text-slate-300">
-                          {item}
-                        </span>
+                          <span className="text-sm font-semibold text-[#FFFFFF]/75">
+                            {item}
+                          </span>
+
+                        </div>
+
+                        <ChevronRight className="h-4 w-4 text-[#FFFFFF]/45" />
 
                       </div>
-
-                      <ChevronRight className="h-4 w-4 text-slate-500" />
-
-                    </div>
-                  ))}
+                    )
+                  )}
 
                 </div>
 
@@ -1014,26 +1187,29 @@ function SchemesPageContent() {
           </div>
 
         </div>
-
       </section>
 
-      {/* =====================================================
+      {/* ===================================================
           DISCLAIMER
-      ===================================================== */}
-      <section className="border-t border-slate-200 bg-white">
+          =================================================== */}
 
-        <div className="mx-auto max-w-4xl px-4 py-9 text-center sm:px-6">
+      <section className="border-t border-[#111827]/10 bg-[#FFFFFF]">
 
-          <p className="text-xs leading-5 text-slate-500">
-            <strong className="text-slate-700">
+        <div className="mx-auto max-w-4xl px-6 py-8 text-center sm:px-8">
+
+          <p className="text-xs leading-5 text-[#111827]/55">
+
+            <strong className="text-[#111827]">
               Important:
             </strong>{" "}
-            SchemeSamjho is an independent informational platform
-            and is not affiliated with the Government of India or
-            any state government. Scheme information can change.
-            Eligibility information shown here is preliminary and
-            should always be verified with the relevant official
-            government source.
+
+            SchemeSamjho is an independent informational
+            platform and is not affiliated with the Government
+            of India or any state government. Scheme information
+            can change. Eligibility information shown here is
+            preliminary and should always be verified with the
+            relevant official government source.
+
           </p>
 
         </div>
@@ -1044,20 +1220,30 @@ function SchemesPageContent() {
   );
 }
 
+/* =========================================================
+   PAGE WRAPPER
+   ========================================================= */
+
 export default function SchemesPage() {
   return (
     <Suspense
       fallback={
-        <main className="min-h-screen bg-[#f7f9fc]">
-          <div className="flex min-h-[60vh] items-center justify-center">
-            <div className="text-center">
-              <div className="mx-auto h-8 w-8 animate-spin rounded-full border-4 border-slate-200 border-t-blue-600" />
+        <main className="min-h-screen bg-[#FFFFFF]">
 
-              <p className="mt-4 text-sm text-slate-500">
+          <div className="flex min-h-[60vh] items-center justify-center">
+
+            <div className="text-center">
+
+              <div className="mx-auto h-8 w-8 animate-spin rounded-full border-4 border-[#111827]/10 border-t-[#2563EB]" />
+
+              <p className="mt-4 text-sm text-[#111827]/60">
                 Loading schemes...
               </p>
+
             </div>
+
           </div>
+
         </main>
       }
     >

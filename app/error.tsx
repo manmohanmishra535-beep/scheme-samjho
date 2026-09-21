@@ -2,63 +2,223 @@
 
 import { useEffect } from "react";
 import Link from "next/link";
-import { AlertTriangle, ArrowLeft, RefreshCw } from "lucide-react";
+import {
+  AlertTriangle,
+  ArrowLeft,
+  ArrowRight,
+  Home,
+  RefreshCw,
+  Search,
+} from "lucide-react";
 
-export default function GlobalError({
+type ErrorPageProps = {
+  error: Error & {
+    digest?: string;
+  };
+  reset: () => void;
+};
+
+export default function ErrorPage({
   error,
   reset,
-}: {
-  error: Error & { digest?: string };
-  reset: () => void;
-}) {
+}: ErrorPageProps) {
   useEffect(() => {
-    console.error(error);
+    console.error("SchemeSamjho application error:", error);
   }, [error]);
 
   return (
-    <main className="min-h-screen bg-gray-50">
-      <section className="relative overflow-hidden bg-[#07111f] text-white">
-        <div className="absolute -left-24 top-0 h-80 w-80 rounded-full bg-blue-500/20 blur-3xl" />
-        <div className="absolute right-0 top-0 h-96 w-96 rounded-full bg-violet-500/10 blur-3xl" />
+    <main className="min-h-screen bg-[#FFFFFF]">
 
-        <div className="relative mx-auto max-w-4xl px-5 py-24 text-center sm:px-6 lg:px-8">
-          <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-red-500/10 text-red-300">
-            <AlertTriangle size={30} />
+      {/* Main error section */}
+      <section className="bg-[#111827]">
+        <div className="mx-auto flex min-h-[72vh] max-w-7xl items-center px-6 py-16 sm:px-8 lg:px-10">
+
+          <div className="w-full text-center">
+
+            {/* Icon */}
+            <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-2xl bg-[#2563EB] text-[#FFFFFF]">
+              <AlertTriangle size={36} />
+            </div>
+
+            {/* Error label */}
+            <p className="mt-8 text-sm font-bold uppercase tracking-[0.18em] text-[#16A34A]">
+              Something went wrong
+            </p>
+
+            {/* Heading */}
+            <h1 className="mt-4 text-3xl font-extrabold tracking-tight text-[#FFFFFF] sm:text-4xl lg:text-5xl">
+              We could not load this page.
+            </h1>
+
+            {/* Description */}
+            <p className="mx-auto mt-5 max-w-xl text-base leading-7 text-[#FFFFFF]/65 sm:text-lg">
+              An unexpected error occurred while loading this
+              page. You can try again or continue browsing
+              SchemeSamjho.
+            </p>
+
+            {/* Actions */}
+            <div className="mt-8 flex flex-col justify-center gap-3 sm:flex-row">
+
+              <button
+                type="button"
+                onClick={() => {
+                  reset();
+                }}
+                className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#2563EB] px-5 py-3 text-sm font-bold text-[#FFFFFF] transition hover:bg-[#FFFFFF] hover:text-[#111827]"
+              >
+                <RefreshCw size={17} />
+                Try again
+              </button>
+
+              <Link
+                href="/"
+                className="inline-flex items-center justify-center gap-2 rounded-xl border border-[#FFFFFF]/25 px-5 py-3 text-sm font-bold text-[#FFFFFF] transition hover:border-[#FFFFFF] hover:bg-[#FFFFFF] hover:text-[#111827]"
+              >
+                <Home size={17} />
+                Go to homepage
+              </Link>
+
+            </div>
+
           </div>
 
-          <p className="mt-7 text-sm font-bold uppercase tracking-wider text-blue-300">
-            Something went wrong
-          </p>
+        </div>
+      </section>
 
-          <h1 className="mt-3 text-4xl font-black tracking-tight sm:text-5xl">
-            We couldn't load this page
-          </h1>
+      {/* Helpful links */}
+      <section>
+        <div className="mx-auto max-w-7xl px-6 py-12 sm:px-8 sm:py-16 lg:px-10">
 
-          <p className="mx-auto mt-5 max-w-xl text-base leading-7 text-gray-300">
-            Something unexpected happened. You can try loading the
-            page again or return to SchemeSamjho.
-          </p>
+          <div className="text-center">
 
-          <div className="mt-8 flex flex-col justify-center gap-3 sm:flex-row">
-            <button
-              type="button"
-              onClick={() => reset()}
-              className="inline-flex items-center justify-center gap-2 rounded-xl bg-white px-6 py-3.5 text-sm font-bold text-gray-950 transition hover:bg-gray-100"
+            <p className="text-sm font-bold text-[#2563EB]">
+              Continue browsing
+            </p>
+
+            <h2 className="mt-2 text-2xl font-extrabold text-[#111827] sm:text-3xl">
+              Explore SchemeSamjho
+            </h2>
+
+            <p className="mx-auto mt-3 max-w-2xl text-sm leading-6 text-[#111827]/60">
+              You can continue to explore schemes, eligibility
+              information and simple explainers.
+            </p>
+
+          </div>
+
+          <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+
+            <QuickLink
+              href="/schemes"
+              title="Government Schemes"
+              description="Browse available government schemes."
+            />
+
+            <QuickLink
+              href="/eligibility"
+              title="Eligibility"
+              description="Explore schemes using the eligibility checker."
+            />
+
+            <QuickLink
+              href="/explainers"
+              title="Explainers"
+              description="Understand schemes in simple language."
+            />
+
+            <QuickLink
+              href="/compare"
+              title="Compare"
+              description="Compare two schemes side by side."
+            />
+
+          </div>
+
+        </div>
+      </section>
+
+      {/* Bottom navigation */}
+      <section className="border-t border-[#111827]/10 bg-[#111827]/5">
+
+        <div className="mx-auto flex max-w-7xl flex-col gap-4 px-6 py-10 sm:flex-row sm:items-center sm:justify-between sm:px-8 lg:px-10">
+
+          <div>
+
+            <p className="text-sm font-bold text-[#2563EB]">
+              SchemeSamjho
+            </p>
+
+            <p className="mt-1 text-sm text-[#111827]/60">
+              Government schemes explained simply.
+            </p>
+
+          </div>
+
+          <div className="flex flex-wrap gap-5">
+
+            <Link
+              href="/schemes"
+              className="inline-flex items-center gap-2 text-sm font-semibold text-[#111827]/60 transition hover:text-[#2563EB]"
             >
-              <RefreshCw size={17} />
-              Try Again
-            </button>
+              Schemes
+              <Search size={15} />
+            </Link>
 
             <Link
               href="/"
-              className="inline-flex items-center justify-center gap-2 rounded-xl border border-white/15 bg-white/5 px-6 py-3.5 text-sm font-bold text-white transition hover:bg-white/10"
+              className="inline-flex items-center gap-2 text-sm font-bold text-[#2563EB] transition hover:text-[#111827]"
             >
-              <ArrowLeft size={17} />
-              Back to Home
+              <ArrowLeft size={16} />
+              Home
             </Link>
+
           </div>
+
         </div>
+
       </section>
+
     </main>
+  );
+}
+
+/* -------------------------------------------------------------------------- */
+/* Quick Link                                                                 */
+/* -------------------------------------------------------------------------- */
+
+function QuickLink({
+  href,
+  title,
+  description,
+}: {
+  href: string;
+  title: string;
+  description: string;
+}) {
+  return (
+    <Link
+      href={href}
+      className="group rounded-2xl border border-[#111827]/10 bg-[#FFFFFF] p-5 transition hover:-translate-y-1 hover:border-[#2563EB]/30"
+    >
+
+      <div className="flex items-center justify-between gap-4">
+
+        <h3 className="text-base font-extrabold text-[#111827]">
+          {title}
+        </h3>
+
+        <ArrowRight
+          size={17}
+          className="shrink-0 text-[#2563EB] transition-transform group-hover:translate-x-1"
+        />
+
+      </div>
+
+      <p className="mt-2 text-sm leading-6 text-[#111827]/60">
+        {description}
+      </p>
+
+    </Link>
   );
 }

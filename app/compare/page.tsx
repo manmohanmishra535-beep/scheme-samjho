@@ -1,720 +1,152 @@
 "use client";
 
-import Link from "next/link";
 import { useMemo, useState } from "react";
+import Link from "next/link";
 import {
   ArrowRight,
-  Check,
+  CheckCircle2,
   ChevronDown,
   ExternalLink,
+  FileText,
+  GitCompareArrows,
+  Info,
   Search,
-  X,
 } from "lucide-react";
 
-import { schemes } from "../../data/schemes";
-import FavoriteButton from "../../Components/FavoriteButton";
-
-const MAX_COMPARE = 3;
+import { schemes, type Scheme } from "../../data/schemes";
 
 export default function ComparePage() {
-  const [selectedSlugs, setSelectedSlugs] = useState<string[]>([
-    "pm-kisan",
-    "ayushman-bharat",
-    "sukanya-samriddhi",
-  ]);
+  const [firstSlug, setFirstSlug] = useState("");
+  const [secondSlug, setSecondSlug] = useState("");
 
-  const [search, setSearch] = useState("");
-  const [showAll, setShowAll] = useState(false);
-
-  const selectedSchemes = useMemo(
-    () =>
-      selectedSlugs
-        .map((slug) => schemes.find((scheme) => scheme.slug === slug))
-        .filter(Boolean),
-    [selectedSlugs]
+  const firstScheme = useMemo(
+    () => schemes.find((scheme) => scheme.slug === firstSlug),
+    [firstSlug]
   );
 
-  const filteredSchemes = useMemo(() => {
-    const query = search.trim().toLowerCase();
+  const secondScheme = useMemo(
+    () => schemes.find((scheme) => scheme.slug === secondSlug),
+    [secondSlug]
+  );
 
-    if (!query) {
-      return schemes;
-    }
-
-    return schemes.filter((scheme) => {
-      return (
-        scheme.name.toLowerCase().includes(query) ||
-        scheme.category.toLowerCase().includes(query) ||
-        scheme.shortDescription.toLowerCase().includes(query) ||
-        scheme.keywords.some((keyword) =>
-          keyword.toLowerCase().includes(query)
-        )
-      );
-    });
-  }, [search]);
-
-  const visibleSchemes = showAll
-    ? filteredSchemes
-    : filteredSchemes.slice(0, 8);
-
-  function toggleScheme(slug: string) {
-    setSelectedSlugs((current) => {
-      if (current.includes(slug)) {
-        return current.filter((item) => item !== slug);
-      }
-
-      if (current.length >= MAX_COMPARE) {
-        return current;
-      }
-
-      return [...current, slug];
-    });
-  }
-
-  function removeScheme(slug: string) {
-    setSelectedSlugs((current) =>
-      current.filter((item) => item !== slug)
-    );
-  }
-
-  function getAgeText(scheme: (typeof schemes)[number]) {
-    if (
-      scheme.minAge !== undefined &&
-      scheme.maxAge !== undefined
-    ) {
-      return `${scheme.minAge}–${scheme.maxAge} years`;
-    }
-
-    if (scheme.minAge !== undefined) {
-      return `${scheme.minAge}+ years`;
-    }
-
-    if (scheme.maxAge !== undefined) {
-      return `Up to ${scheme.maxAge} years`;
-    }
-
-    return "Not specified";
-  }
-
-  function getIncomeText(scheme: (typeof schemes)[number]) {
-    if (scheme.maxIncome !== undefined) {
-      return `Up to ₹${scheme.maxIncome.toLocaleString("en-IN")} per year`;
-    }
-
-    return "No simple annual limit specified";
-  }
-
-  function getOccupationText(scheme: (typeof schemes)[number]) {
-    if (!scheme.occupations?.length) {
-      return "Not specified";
-    }
-
-    return scheme.occupations.join(", ");
-  }
-
-  function getStateText(scheme: (typeof schemes)[number]) {
-    if (!scheme.states?.length) {
-      return "Applicable across India";
-    }
-
-    return scheme.states.join(", ");
-  }
-
-  function getDocumentText(scheme: (typeof schemes)[number]) {
-    if (!scheme.documents?.length) {
-      return "Not specified";
-    }
-
-    return scheme.documents.join(", ");
-  }
+  const canCompare = Boolean(firstScheme && secondScheme);
 
   return (
-    <main className="min-h-screen bg-gray-50">
+    <main className="min-h-screen bg-[#FFFFFF] text-[#111827]">
       {/* HERO */}
-      <section className="relative overflow-hidden bg-[#07111f] text-white">
-        <div className="absolute -left-32 top-0 h-96 w-96 rounded-full bg-blue-500/20 blur-3xl" />
-        <div className="absolute right-0 top-0 h-[28rem] w-[28rem] rounded-full bg-violet-500/10 blur-3xl" />
-        <div className="absolute bottom-0 left-1/3 h-56 w-56 rounded-full bg-cyan-500/10 blur-3xl" />
-
-        <div className="relative mx-auto max-w-7xl px-5 pb-20 pt-16 sm:px-6 lg:px-8 lg:pb-24 lg:pt-20">
+      <section className="bg-[#111827]">
+        <div className="mx-auto max-w-7xl px-6 py-14 sm:px-8 lg:px-10 lg:py-20">
           <div className="max-w-3xl">
-            <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-4 py-2 text-sm font-semibold text-blue-200 backdrop-blur">
-              <span className="h-2 w-2 rounded-full bg-blue-400" />
-              Scheme Comparison
+            <div className="inline-flex items-center gap-2 rounded-full border border-[#FFFFFF]/20 px-4 py-2 text-sm font-semibold text-[#FFFFFF]">
+              <GitCompareArrows size={16} />
+              Scheme comparison
             </div>
 
-            <h1 className="mt-6 text-4xl font-black tracking-tight sm:text-5xl lg:text-6xl">
-              Compare government schemes
-              <span className="block text-blue-400">
-                side by side.
-              </span>
+            <h1 className="mt-6 text-4xl font-extrabold leading-[1.06] tracking-tight text-[#FFFFFF] sm:text-5xl lg:text-6xl">
+              Compare government
+              <br />
+              schemes side by side.
             </h1>
 
-            <p className="mt-5 max-w-2xl text-base leading-7 text-gray-300 sm:text-lg">
-              Compare benefits, eligibility information, documents,
-              age criteria and other important details in one place.
+            <p className="mt-6 max-w-2xl text-base leading-7 text-[#FFFFFF]/75 sm:text-lg">
+              Compare benefits, eligibility, age requirements,
+              documents and other important information in one
+              place.
             </p>
-          </div>
-
-          <div className="mt-10 grid max-w-3xl grid-cols-1 gap-4 sm:grid-cols-3">
-            <div className="rounded-2xl border border-white/10 bg-white/5 p-5">
-              <p className="text-2xl font-black">
-                {selectedSchemes.length}/{MAX_COMPARE}
-              </p>
-              <p className="mt-1 text-sm text-gray-400">
-                Schemes selected
-              </p>
-            </div>
-
-            <div className="rounded-2xl border border-white/10 bg-white/5 p-5">
-              <p className="text-2xl font-black">
-                {schemes.length}
-              </p>
-              <p className="mt-1 text-sm text-gray-400">
-                Schemes available
-              </p>
-            </div>
-
-            <div className="rounded-2xl border border-white/10 bg-white/5 p-5">
-              <p className="text-2xl font-black">
-                1 view
-              </p>
-              <p className="mt-1 text-sm text-gray-400">
-                Key details compared
-              </p>
-            </div>
           </div>
         </div>
       </section>
 
-      {/* SELECT SCHEMES */}
-      <section className="border-b border-gray-200 bg-white">
-        <div className="mx-auto max-w-7xl px-5 py-10 sm:px-6 lg:px-8">
-          <div className="flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
-            <div>
-              <p className="text-sm font-bold uppercase tracking-wider text-blue-600">
-                Step 1
-              </p>
+      {/* SELECTORS */}
+      <section className="bg-[#FFFFFF]">
+        <div className="mx-auto max-w-7xl px-6 py-12 sm:px-8 sm:py-16 lg:px-10">
+          <div className="grid gap-6 lg:grid-cols-2">
+            <SchemeSelector
+              label="First scheme"
+              value={firstSlug}
+              onChange={setFirstSlug}
+              excludeSlug={secondSlug}
+            />
 
-              <h2 className="mt-2 text-2xl font-black tracking-tight text-gray-950 sm:text-3xl">
-                Choose schemes to compare
-              </h2>
-
-              <p className="mt-2 text-sm leading-6 text-gray-600">
-                Select up to {MAX_COMPARE} schemes.
-              </p>
-            </div>
-
-            <div className="rounded-full bg-gray-100 px-4 py-2 text-sm font-bold text-gray-700">
-              {selectedSchemes.length} of {MAX_COMPARE} selected
-            </div>
+            <SchemeSelector
+              label="Second scheme"
+              value={secondSlug}
+              onChange={setSecondSlug}
+              excludeSlug={firstSlug}
+            />
           </div>
 
-          {/* Selected chips */}
-          <div className="mt-7">
-            {selectedSchemes.length > 0 ? (
-              <div className="flex flex-wrap gap-2">
-                {selectedSchemes.map((scheme) => (
-                  <div
-                    key={scheme!.slug}
-                    className="inline-flex items-center gap-2 rounded-full bg-blue-50 px-4 py-2.5 text-sm font-semibold text-blue-700"
-                  >
-                    {scheme!.name}
+          {/* INFO */}
+          <div className="mt-6 rounded-2xl border border-[#111827]/10 bg-[#111827]/5 p-5">
+            <div className="flex items-start gap-3">
+              <Info
+                size={20}
+                className="mt-0.5 shrink-0 text-[#2563EB]"
+              />
 
-                    <button
-                      type="button"
-                      onClick={() =>
-                        removeScheme(scheme!.slug)
-                      }
-                      aria-label={`Remove ${scheme!.name}`}
-                      className="rounded-full p-0.5 transition hover:bg-blue-100"
-                    >
-                      <X size={15} />
-                    </button>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <div className="rounded-2xl border border-dashed border-gray-300 bg-gray-50 px-5 py-6 text-center">
-                <p className="font-semibold text-gray-700">
-                  No schemes selected
+              <div>
+                <p className="text-sm font-bold text-[#111827]">
+                  Choose two schemes to compare
                 </p>
-                <p className="mt-1 text-sm text-gray-500">
-                  Select schemes below to start comparing.
+
+                <p className="mt-1 text-sm leading-6 text-[#111827]/60">
+                  Select any two available schemes above. The
+                  comparison will appear automatically.
                 </p>
               </div>
-            )}
-          </div>
-
-          {/* Search */}
-          <div className="mt-8">
-            <label
-              htmlFor="scheme-search"
-              className="mb-2 block text-sm font-semibold text-gray-800"
-            >
-              Search schemes
-            </label>
-
-            <div className="relative">
-              <Search
-                size={19}
-                className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400"
-              />
-
-              <input
-                id="scheme-search"
-                type="search"
-                value={search}
-                onChange={(event) =>
-                  setSearch(event.target.value)
-                }
-                placeholder="Search by scheme name or category..."
-                className="w-full rounded-2xl border border-gray-300 bg-white py-4 pl-12 pr-4 text-sm text-gray-900 outline-none transition placeholder:text-gray-400 focus:border-blue-500 focus:ring-4 focus:ring-blue-100"
-              />
             </div>
           </div>
 
-          {/* Scheme cards */}
-          <div className="mt-7 grid gap-4 md:grid-cols-2">
-            {visibleSchemes.map((scheme) => {
-              const isSelected = selectedSlugs.includes(
-                scheme.slug
-              );
-
-              const limitReached =
-                selectedSlugs.length >= MAX_COMPARE &&
-                !isSelected;
-
-              return (
-                <button
-                  key={scheme.slug}
-                  type="button"
-                  onClick={() => toggleScheme(scheme.slug)}
-                  disabled={limitReached}
-                  className={`group relative rounded-2xl border p-5 text-left transition ${
-                    isSelected
-                      ? "border-blue-500 bg-blue-50/80 shadow-md shadow-blue-100"
-                      : limitReached
-                        ? "cursor-not-allowed border-gray-200 bg-gray-50 opacity-60"
-                        : "border-gray-200 bg-white hover:-translate-y-0.5 hover:border-blue-300 hover:shadow-lg hover:shadow-gray-200/60"
-                  }`}
-                >
-                  <div className="flex items-start justify-between gap-5">
-                    <div className="min-w-0">
-                      <p className="text-xs font-bold uppercase tracking-wide text-blue-600">
-                        {scheme.category}
-                      </p>
-
-                      <h3 className="mt-2 text-lg font-bold text-gray-950">
-                        {scheme.name}
-                      </h3>
-
-                      <p className="mt-2 text-sm leading-6 text-gray-600">
-                        {scheme.shortDescription}
-                      </p>
-                    </div>
-
-                    <span
-                      className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full border ${
-                        isSelected
-                          ? "border-blue-600 bg-blue-600 text-white"
-                          : "border-gray-300 bg-white text-transparent"
-                      }`}
-                    >
-                      <Check size={16} strokeWidth={3} />
-                    </span>
-                  </div>
-
-                  <div className="mt-4 flex items-center gap-2 text-xs font-semibold text-gray-500">
-                    <span>
-                      {isSelected
-                        ? "Selected"
-                        : limitReached
-                          ? "Remove a scheme to select"
-                          : "Click to select"}
-                    </span>
-                  </div>
-                </button>
-              );
-            })}
-          </div>
-
-          {filteredSchemes.length === 0 && (
-            <div className="mt-7 rounded-2xl border border-gray-200 bg-gray-50 px-5 py-12 text-center">
-              <Search
-                size={28}
-                className="mx-auto text-gray-400"
-              />
-              <h3 className="mt-4 font-bold text-gray-900">
-                No schemes found
-              </h3>
-              <p className="mt-1 text-sm text-gray-500">
-                Try a different scheme name or category.
-              </p>
-            </div>
+          {/* COMPARISON */}
+          {canCompare && firstScheme && secondScheme && (
+            <Comparison
+              first={firstScheme}
+              second={secondScheme}
+            />
           )}
 
-          {filteredSchemes.length > 8 && (
-            <div className="mt-7 text-center">
-              <button
-                type="button"
-                onClick={() => setShowAll((value) => !value)}
-                className="inline-flex items-center gap-2 rounded-xl border border-gray-300 bg-white px-5 py-3 text-sm font-bold text-gray-800 transition hover:border-blue-300 hover:bg-blue-50"
-              >
-                {showAll ? "Show fewer schemes" : "Show all schemes"}
-                <ChevronDown
-                  size={17}
-                  className={`transition ${
-                    showAll ? "rotate-180" : ""
-                  }`}
+          {/* EMPTY STATE */}
+          {!canCompare && (
+            <div className="mt-12 rounded-2xl border border-dashed border-[#111827]/15 px-6 py-16 text-center">
+              <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-[#2563EB]/10">
+                <GitCompareArrows
+                  size={26}
+                  className="text-[#2563EB]"
                 />
-              </button>
-            </div>
-          )}
-        </div>
-      </section>
+              </div>
 
-      {/* COMPARISON */}
-      <section className="bg-gray-50">
-        <div className="mx-auto max-w-7xl px-5 py-12 sm:px-6 lg:px-8 lg:py-16">
-          <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-            <div>
-              <p className="text-sm font-bold uppercase tracking-wider text-blue-600">
-                Step 2
-              </p>
-
-              <h2 className="mt-2 text-2xl font-black tracking-tight text-gray-950 sm:text-3xl">
-                Compare the selected schemes
+              <h2 className="mt-5 text-2xl font-extrabold text-[#111827]">
+                Your comparison will appear here
               </h2>
 
-              <p className="mt-2 max-w-2xl text-sm leading-6 text-gray-600">
-                Review the information side by side before visiting
-                the official source for confirmation.
+              <p className="mx-auto mt-3 max-w-xl text-sm leading-6 text-[#111827]/60">
+                Select two government schemes above to see their
+                information side by side.
               </p>
             </div>
+          )}
 
-            {selectedSchemes.length > 0 && (
-              <div className="rounded-xl bg-white px-4 py-3 text-sm font-semibold text-gray-700 shadow-sm ring-1 ring-gray-200">
-                {selectedSchemes.length} scheme
-                {selectedSchemes.length !== 1 ? "s" : ""} selected
+          {/* CTA */}
+          <div className="mt-12 rounded-2xl bg-[#111827] p-6 sm:p-8">
+            <div className="flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
+              <div>
+                <h2 className="text-xl font-extrabold text-[#FFFFFF]">
+                  Not sure which schemes may apply to you?
+                </h2>
+
+                <p className="mt-2 max-w-2xl text-sm leading-6 text-[#FFFFFF]/65">
+                  Use the preliminary eligibility checker to
+                  explore schemes based on your information.
+                </p>
               </div>
-            )}
-          </div>
 
-          {selectedSchemes.length === 0 ? (
-            <div className="mt-8 rounded-3xl border border-gray-200 bg-white px-6 py-16 text-center shadow-sm">
-              <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-blue-50 text-blue-600">
-                <Search size={25} />
-              </div>
-
-              <h3 className="mt-5 text-xl font-black text-gray-950">
-                Select schemes to compare
-              </h3>
-
-              <p className="mx-auto mt-2 max-w-md text-sm leading-6 text-gray-600">
-                Choose at least one scheme from the section above.
-                You can compare up to {MAX_COMPARE} schemes at a
-                time.
-              </p>
-            </div>
-          ) : (
-            <div className="mt-8 overflow-hidden rounded-3xl border border-gray-200 bg-white shadow-xl shadow-gray-900/5">
-              {/* Scheme headers */}
-              <div
-                className="grid min-w-[900px]"
-                style={{
-                  gridTemplateColumns: `220px repeat(${selectedSchemes.length}, minmax(250px, 1fr))`,
-                }}
+              <Link
+                href="/eligibility"
+                className="inline-flex shrink-0 items-center justify-center gap-2 rounded-xl bg-[#2563EB] px-5 py-3 text-sm font-bold text-[#FFFFFF] transition hover:bg-[#FFFFFF] hover:text-[#111827]"
               >
-                <div className="border-b border-r border-gray-200 bg-gray-50 p-5">
-                  <p className="text-xs font-bold uppercase tracking-wider text-gray-500">
-                    Comparison
-                  </p>
-                  <p className="mt-2 text-sm font-semibold text-gray-700">
-                    Key information
-                  </p>
-                </div>
-
-                {selectedSchemes.map((scheme) => (
-                  <div
-                    key={scheme!.slug}
-                    className="relative border-b border-gray-200 p-5"
-                  >
-                    <button
-                      type="button"
-                      onClick={() =>
-                        removeScheme(scheme!.slug)
-                      }
-                      title={`Remove ${scheme!.name}`}
-                      className="absolute right-4 top-4 flex h-8 w-8 items-center justify-center rounded-lg border border-gray-200 text-gray-400 transition hover:border-red-200 hover:bg-red-50 hover:text-red-600"
-                    >
-                      <X size={15} />
-                    </button>
-
-                    <p className="pr-10 text-xs font-bold uppercase tracking-wider text-blue-600">
-                      {scheme!.category}
-                    </p>
-
-                    <h3 className="mt-2 pr-8 text-lg font-black leading-6 text-gray-950">
-                      {scheme!.name}
-                    </h3>
-
-                    <div className="mt-4">
-                      <FavoriteButton slug={scheme!.slug} />
-                    </div>
-                  </div>
-                ))}
-
-                {/* Category */}
-                <CompareLabel label="Category" />
-
-                {selectedSchemes.map((scheme) => (
-                  <CompareValue key={scheme!.slug}>
-                    <span className="inline-flex rounded-full bg-blue-50 px-3 py-1.5 text-xs font-bold text-blue-700">
-                      {scheme!.category}
-                    </span>
-                  </CompareValue>
-                ))}
-
-                {/* Description */}
-                <CompareLabel label="About" />
-
-                {selectedSchemes.map((scheme) => (
-                  <CompareValue key={scheme!.slug}>
-                    <p className="text-sm leading-6 text-gray-700">
-                      {scheme!.description}
-                    </p>
-                  </CompareValue>
-                ))}
-
-                {/* Benefits */}
-                <CompareLabel label="Benefits" />
-
-                {selectedSchemes.map((scheme) => (
-                  <CompareValue key={scheme!.slug}>
-                    <ul className="space-y-2.5">
-                      {scheme!.benefits.map((benefit) => (
-                        <li
-                          key={benefit}
-                          className="flex items-start gap-2 text-sm leading-5 text-gray-700"
-                        >
-                          <Check
-                            size={16}
-                            className="mt-0.5 shrink-0 text-green-600"
-                          />
-                          <span>{benefit}</span>
-                        </li>
-                      ))}
-                    </ul>
-                  </CompareValue>
-                ))}
-
-                {/* Eligibility */}
-                <CompareLabel label="Eligibility" />
-
-                {selectedSchemes.map((scheme) => (
-                  <CompareValue key={scheme!.slug}>
-                    <ul className="space-y-2.5">
-                      {scheme!.eligibilitySummary.map(
-                        (item) => (
-                          <li
-                            key={item}
-                            className="flex items-start gap-2 text-sm leading-5 text-gray-700"
-                          >
-                            <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-blue-500" />
-                            <span>{item}</span>
-                          </li>
-                        )
-                      )}
-                    </ul>
-                  </CompareValue>
-                ))}
-
-                {/* Age */}
-                <CompareLabel label="Age criteria" />
-
-                {selectedSchemes.map((scheme) => (
-                  <CompareValue key={scheme!.slug}>
-                    <p className="text-sm font-semibold text-gray-800">
-                      {getAgeText(scheme!)}
-                    </p>
-                  </CompareValue>
-                ))}
-
-                {/* Income */}
-                <CompareLabel label="Income criteria" />
-
-                {selectedSchemes.map((scheme) => (
-                  <CompareValue key={scheme!.slug}>
-                    <p className="text-sm leading-6 text-gray-700">
-                      {getIncomeText(scheme!)}
-                    </p>
-                  </CompareValue>
-                ))}
-
-                {/* Occupation */}
-                <CompareLabel label="Target occupation" />
-
-                {selectedSchemes.map((scheme) => (
-                  <CompareValue key={scheme!.slug}>
-                    <p className="text-sm leading-6 text-gray-700">
-                      {getOccupationText(scheme!)}
-                    </p>
-                  </CompareValue>
-                ))}
-
-                {/* Documents */}
-                <CompareLabel label="Documents" />
-
-                {selectedSchemes.map((scheme) => (
-                  <CompareValue key={scheme!.slug}>
-                    <ul className="space-y-2">
-                      {scheme!.documents.map((document) => (
-                        <li
-                          key={document}
-                          className="text-sm leading-5 text-gray-700"
-                        >
-                          • {document}
-                        </li>
-                      ))}
-                    </ul>
-                  </CompareValue>
-                ))}
-
-                {/* States */}
-                <CompareLabel label="Geographic scope" />
-
-                {selectedSchemes.map((scheme) => (
-                  <CompareValue key={scheme!.slug}>
-                    <p className="text-sm leading-6 text-gray-700">
-                      {getStateText(scheme!)}
-                    </p>
-                  </CompareValue>
-                ))}
-
-                {/* Exclusions */}
-                <CompareLabel label="Important exclusions" />
-
-                {selectedSchemes.map((scheme) => (
-                  <CompareValue key={scheme!.slug}>
-                    {scheme!.exclusions?.length ? (
-                      <ul className="space-y-2">
-                        {scheme!.exclusions.map((item) => (
-                          <li
-                            key={item}
-                            className="text-sm leading-5 text-gray-700"
-                          >
-                            • {item}
-                          </li>
-                        ))}
-                      </ul>
-                    ) : (
-                      <p className="text-sm text-gray-500">
-                        No exclusions listed in our current data.
-                      </p>
-                    )}
-                  </CompareValue>
-                ))}
-
-                {/* Last verified */}
-                <CompareLabel label="Last verified" />
-
-                {selectedSchemes.map((scheme) => (
-                  <CompareValue key={scheme!.slug}>
-                    <p className="text-sm font-semibold text-gray-800">
-                      {scheme!.lastVerified}
-                    </p>
-                  </CompareValue>
-                ))}
-
-                {/* Actions */}
-                <CompareLabel label="Actions" />
-
-                {selectedSchemes.map((scheme) => (
-                  <CompareValue key={scheme!.slug}>
-                    <div className="flex flex-col gap-2">
-                      <Link
-                        href={`/schemes/${scheme!.slug}`}
-                        className="inline-flex w-fit items-center gap-2 rounded-xl bg-gray-950 px-4 py-2.5 text-sm font-bold text-white transition hover:bg-gray-800"
-                      >
-                        View Scheme
-                        <ArrowRight size={15} />
-                      </Link>
-
-                      <a
-                        href={scheme!.officialUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="inline-flex w-fit items-center gap-2 rounded-xl border border-gray-200 px-4 py-2.5 text-sm font-bold text-gray-700 transition hover:border-blue-300 hover:bg-blue-50 hover:text-blue-700"
-                      >
-                        Official Source
-                        <ExternalLink size={14} />
-                      </a>
-                    </div>
-                  </CompareValue>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* Mobile horizontal-scroll hint */}
-          {selectedSchemes.length > 0 && (
-            <p className="mt-3 text-center text-xs text-gray-500 lg:hidden">
-              Swipe horizontally to view all comparison columns.
-            </p>
-          )}
-        </div>
-      </section>
-
-      {/* TRUST / DISCLAIMER */}
-      <section className="border-t border-gray-200 bg-white">
-        <div className="mx-auto max-w-7xl px-5 py-12 sm:px-6 lg:px-8">
-          <div className="grid gap-6 lg:grid-cols-3">
-            <div className="rounded-2xl border border-gray-200 bg-gray-50 p-6">
-              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-100 text-blue-700">
-                <Check size={19} />
-              </div>
-
-              <h3 className="mt-4 font-black text-gray-950">
-                Information first
-              </h3>
-
-              <p className="mt-2 text-sm leading-6 text-gray-600">
-                Comparison information comes from the scheme data
-                maintained by SchemeSamjho.
-              </p>
-            </div>
-
-            <div className="rounded-2xl border border-gray-200 bg-gray-50 p-6">
-              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-100 text-blue-700">
-                <ExternalLink size={18} />
-              </div>
-
-              <h3 className="mt-4 font-black text-gray-950">
-                Check the official source
-              </h3>
-
-              <p className="mt-2 text-sm leading-6 text-gray-600">
-                Scheme rules, application processes and eligibility
-                can change. Always confirm current details with the
-                official source.
-              </p>
-            </div>
-
-            <div className="rounded-2xl border border-gray-200 bg-gray-50 p-6">
-              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-100 text-blue-700">
-                <Search size={18} />
-              </div>
-
-              <h3 className="mt-4 font-black text-gray-950">
-                Comparison is preliminary
-              </h3>
-
-              <p className="mt-2 text-sm leading-6 text-gray-600">
-                This page helps you understand differences. It does
-                not determine official eligibility or guarantee a
-                benefit.
-              </p>
+                Check eligibility
+                <ArrowRight size={17} />
+              </Link>
             </div>
           </div>
         </div>
@@ -723,24 +155,477 @@ export default function ComparePage() {
   );
 }
 
-function CompareLabel({ label }: { label: string }) {
+/* ============================================================
+   SCHEME SELECTOR
+   ============================================================ */
+
+function SchemeSelector({
+  label,
+  value,
+  onChange,
+  excludeSlug,
+}: {
+  label: string;
+  value: string;
+  onChange: (value: string) => void;
+  excludeSlug: string;
+}) {
+  const [open, setOpen] = useState(false);
+  const [search, setSearch] = useState("");
+
+  const selectedScheme = schemes.find(
+    (scheme) => scheme.slug === value
+  );
+
+  const filteredSchemes = useMemo(() => {
+    const query = search.trim().toLowerCase();
+
+    return schemes.filter((scheme) => {
+      if (scheme.slug === excludeSlug) {
+        return false;
+      }
+
+      if (!query) {
+        return true;
+      }
+
+      return (
+        scheme.name.toLowerCase().includes(query) ||
+        scheme.slug.toLowerCase().includes(query) ||
+        scheme.category.toLowerCase().includes(query) ||
+        scheme.shortDescription
+          .toLowerCase()
+          .includes(query)
+      );
+    });
+  }, [excludeSlug, search]);
+
+  function handleSelect(slug: string) {
+    onChange(slug);
+    setOpen(false);
+    setSearch("");
+  }
+
   return (
-    <div className="border-b border-r border-gray-200 bg-gray-50 p-5">
-      <p className="text-sm font-bold text-gray-800">
+    <div className="relative">
+      <label className="text-sm font-bold text-[#111827]">
         {label}
-      </p>
+      </label>
+
+      <button
+        type="button"
+        onClick={() => setOpen((current) => !current)}
+        aria-expanded={open}
+        aria-haspopup="listbox"
+        className="mt-2 flex min-h-14 w-full items-center justify-between gap-4 rounded-xl border border-[#111827]/15 bg-[#FFFFFF] px-4 text-left transition hover:border-[#2563EB] focus:border-[#2563EB] focus:outline-none"
+      >
+        <div className="min-w-0">
+          {selectedScheme ? (
+            <>
+              <p className="truncate text-sm font-bold text-[#111827]">
+                {selectedScheme.name}
+              </p>
+
+              <p className="mt-1 truncate text-xs text-[#111827]/50">
+                {selectedScheme.category}
+              </p>
+            </>
+          ) : (
+            <p className="text-sm text-[#111827]/45">
+              Select a scheme
+            </p>
+          )}
+        </div>
+
+        <ChevronDown
+          size={19}
+          className={`shrink-0 text-[#111827]/50 transition-transform ${
+            open ? "rotate-180" : ""
+          }`}
+        />
+      </button>
+
+      {open && (
+        <div className="absolute left-0 right-0 top-[82px] z-30 overflow-hidden rounded-2xl border border-[#111827]/10 bg-[#FFFFFF] shadow-xl">
+          {/* SEARCH */}
+          <div className="border-b border-[#111827]/10 p-3">
+            <div className="relative">
+              <Search
+                size={17}
+                className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[#111827]/35"
+              />
+
+              <input
+                type="search"
+                value={search}
+                onChange={(event) =>
+                  setSearch(event.target.value)
+                }
+                autoFocus
+                placeholder="Search schemes..."
+                aria-label={`Search ${label.toLowerCase()}`}
+                className="h-11 w-full rounded-lg border border-[#111827]/10 bg-[#FFFFFF] pl-10 pr-3 text-sm text-[#111827] outline-none placeholder:text-[#111827]/40 focus:border-[#2563EB]"
+              />
+            </div>
+          </div>
+
+          {/* OPTIONS */}
+          <div
+            className="max-h-72 overflow-y-auto p-2"
+            role="listbox"
+          >
+            {filteredSchemes.length === 0 ? (
+              <div className="px-4 py-8 text-center">
+                <p className="text-sm font-semibold text-[#111827]">
+                  No schemes found
+                </p>
+
+                <p className="mt-1 text-xs text-[#111827]/50">
+                  Try a different search.
+                </p>
+              </div>
+            ) : (
+              filteredSchemes.map((scheme) => (
+                <button
+                  key={scheme.slug}
+                  type="button"
+                  role="option"
+                  aria-selected={value === scheme.slug}
+                  onClick={() => handleSelect(scheme.slug)}
+                  className={`w-full rounded-xl px-4 py-3 text-left transition hover:bg-[#2563EB]/10 ${
+                    value === scheme.slug
+                      ? "bg-[#2563EB]/10"
+                      : ""
+                  }`}
+                >
+                  <p className="text-sm font-bold text-[#111827]">
+                    {scheme.name}
+                  </p>
+
+                  <p className="mt-1 text-xs text-[#111827]/50">
+                    {scheme.category}
+                  </p>
+                </button>
+              ))
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
 
-function CompareValue({
-  children,
+/* ============================================================
+   COMPARISON
+   ============================================================ */
+
+function Comparison({
+  first,
+  second,
 }: {
-  children: React.ReactNode;
+  first: Scheme;
+  second: Scheme;
 }) {
   return (
-    <div className="border-b border-gray-200 p-5">
-      {children}
+    <section className="mt-12">
+      {/* HEADERS */}
+      <div className="grid gap-4 lg:grid-cols-2">
+        <SchemeHeader scheme={first} />
+        <SchemeHeader scheme={second} />
+      </div>
+
+      {/* TABLE */}
+      <div className="mt-6 overflow-hidden rounded-2xl border border-[#111827]/10">
+        <ComparisonRow
+          label="Category"
+          first={first.category}
+          second={second.category}
+        />
+
+        <ComparisonRow
+          label="Description"
+          first={first.shortDescription}
+          second={second.shortDescription}
+        />
+
+        <ComparisonListRow
+          label="Benefits"
+          first={first.benefits}
+          second={second.benefits}
+        />
+
+        <ComparisonRow
+          label="Eligibility"
+          first={first.eligibilitySummary}
+          second={second.eligibilitySummary}
+        />
+
+        <ComparisonRow
+          label="Minimum age"
+          first={formatAge(first.minAge)}
+          second={formatAge(second.minAge)}
+        />
+
+        <ComparisonRow
+          label="Maximum age"
+          first={formatAge(first.maxAge)}
+          second={formatAge(second.maxAge)}
+        />
+
+        <ComparisonRow
+          label="Income limit"
+          first={formatIncome(first.maxIncome)}
+          second={formatIncome(second.maxIncome)}
+        />
+
+        <ComparisonListRow
+          label="Occupations / groups"
+          first={first.occupations}
+          second={second.occupations}
+        />
+
+        <ComparisonListRow
+          label="Documents"
+          first={first.documents}
+          second={second.documents}
+        />
+
+        <ComparisonListRow
+          label="Exclusions"
+          first={first.exclusions}
+          second={second.exclusions}
+        />
+
+        <ComparisonRow
+          label="Last verified"
+          first={first.lastVerified}
+          second={second.lastVerified}
+        />
+      </div>
+
+      {/* OFFICIAL SOURCES */}
+      <div className="mt-6 grid gap-4 lg:grid-cols-2">
+        <OfficialSource scheme={first} />
+        <OfficialSource scheme={second} />
+      </div>
+    </section>
+  );
+}
+
+/* ============================================================
+   SCHEME HEADER
+   ============================================================ */
+
+function SchemeHeader({
+  scheme,
+}: {
+  scheme: Scheme;
+}) {
+  return (
+    <div className="rounded-2xl bg-[#111827] p-6">
+      <div className="flex items-start justify-between gap-4">
+        <div className="min-w-0">
+          <p className="text-xs font-bold uppercase tracking-wide text-[#16A34A]">
+            {scheme.category}
+          </p>
+
+          <h2 className="mt-2 text-2xl font-extrabold text-[#FFFFFF]">
+            {scheme.name}
+          </h2>
+        </div>
+
+        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#2563EB] text-[#FFFFFF]">
+          <GitCompareArrows size={19} />
+        </div>
+      </div>
+
+      <p className="mt-4 text-sm leading-6 text-[#FFFFFF]/65">
+        {scheme.shortDescription}
+      </p>
+
+      <Link
+        href={`/schemes/${scheme.slug}`}
+        className="mt-5 inline-flex items-center gap-2 text-sm font-bold text-[#FFFFFF] transition hover:text-[#2563EB]"
+      >
+        View scheme
+        <ArrowRight size={16} />
+      </Link>
     </div>
   );
+}
+
+/* ============================================================
+   COMPARISON ROW
+   ============================================================ */
+
+function ComparisonRow({
+  label,
+  first,
+  second,
+}: {
+  label: string;
+  first: string;
+  second: string;
+}) {
+  return (
+    <div className="grid border-b border-[#111827]/10 last:border-b-0 lg:grid-cols-[190px_1fr_1fr]">
+      <div className="bg-[#111827]/5 px-5 py-4 lg:border-r lg:border-[#111827]/10">
+        <p className="text-sm font-extrabold text-[#111827]">
+          {label}
+        </p>
+      </div>
+
+      <div className="border-t border-[#111827]/10 px-5 py-4 lg:border-t-0 lg:border-r lg:border-[#111827]/10">
+        <p className="text-sm leading-6 text-[#111827]/70">
+          {first}
+        </p>
+      </div>
+
+      <div className="border-t border-[#111827]/10 px-5 py-4 lg:border-t-0">
+        <p className="text-sm leading-6 text-[#111827]/70">
+          {second}
+        </p>
+      </div>
+    </div>
+  );
+}
+
+/* ============================================================
+   LIST COMPARISON ROW
+   ============================================================ */
+
+function ComparisonListRow({
+  label,
+  first,
+  second,
+}: {
+  label: string;
+  first: string[];
+  second: string[];
+}) {
+  return (
+    <div className="grid border-b border-[#111827]/10 last:border-b-0 lg:grid-cols-[190px_1fr_1fr]">
+      <div className="bg-[#111827]/5 px-5 py-4 lg:border-r lg:border-[#111827]/10">
+        <p className="text-sm font-extrabold text-[#111827]">
+          {label}
+        </p>
+      </div>
+
+      <ListCell items={first} />
+
+      <ListCell items={second} border />
+    </div>
+  );
+}
+
+/* ============================================================
+   LIST CELL
+   ============================================================ */
+
+function ListCell({
+  items,
+  border = false,
+}: {
+  items: string[];
+  border?: boolean;
+}) {
+  return (
+    <div
+      className={`border-t border-[#111827]/10 px-5 py-4 lg:border-t-0 ${
+        border
+          ? "lg:border-l lg:border-[#111827]/10"
+          : "lg:border-r lg:border-[#111827]/10"
+      }`}
+    >
+      {items.length > 0 ? (
+        <ul className="space-y-2">
+          {items.map((item) => (
+            <li
+              key={item}
+              className="flex items-start gap-2"
+            >
+              <CheckCircle2
+                size={16}
+                className="mt-0.5 shrink-0 text-[#16A34A]"
+              />
+
+              <span className="text-sm leading-6 text-[#111827]/70">
+                {item}
+              </span>
+            </li>
+          ))}
+        </ul>
+      ) : (
+        <p className="text-sm text-[#111827]/45">
+          Not specified
+        </p>
+      )}
+    </div>
+  );
+}
+
+/* ============================================================
+   OFFICIAL SOURCE
+   ============================================================ */
+
+function OfficialSource({
+  scheme,
+}: {
+  scheme: Scheme;
+}) {
+  return (
+    <div className="rounded-2xl border border-[#111827]/10 p-6">
+      <div className="flex items-start gap-3">
+        <FileText
+          size={20}
+          className="mt-0.5 shrink-0 text-[#2563EB]"
+        />
+
+        <div>
+          <p className="text-sm font-extrabold text-[#111827]">
+            Official source
+          </p>
+
+          <p className="mt-1 text-xs leading-5 text-[#111827]/50">
+            Verify current information through the official
+            government source.
+          </p>
+        </div>
+      </div>
+
+      <a
+        href={scheme.officialUrl}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="mt-4 inline-flex items-center gap-2 text-sm font-bold text-[#2563EB] transition hover:text-[#111827]"
+      >
+        Visit official website
+        <ExternalLink size={15} />
+      </a>
+    </div>
+  );
+}
+
+/* ============================================================
+   HELPERS
+   ============================================================ */
+
+function formatAge(
+  age: number | null | undefined
+): string {
+  if (age == null) {
+    return "Not specified";
+  }
+
+  return `${age} years`;
+}
+
+function formatIncome(
+  income: number | null | undefined
+): string {
+  if (income == null) {
+    return "See scheme rules";
+  }
+
+  return `₹${income.toLocaleString("en-IN")}`;
 }

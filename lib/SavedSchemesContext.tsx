@@ -1,127 +1,52 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
-import { useAuth, useUser } from "@clerk/nextjs";
-import { createClerkSupabaseClient } from "./supabase";
+import {
+  createContext,
+  useContext,
+  type ReactNode,
+} from "react";
 
-type SavedScheme = {
-  slug: string;
-  createdAt: string;
+import { useSavedSchemes } from "./useSavedSchemes";
+
+type SavedSchemesContextValue =
+  ReturnType<typeof useSavedSchemes>;
+
+const SavedSchemesContext =
+  createContext<
+    SavedSchemesContextValue | undefined
+  >(undefined);
+
+type SavedSchemesProviderProps = {
+  children: ReactNode;
 };
 
-const SAVED_SCHEMES_CHANGED = "saved-schemes-changed";
+export function SavedSchemesProvider({
+  children,
+}: SavedSchemesProviderProps) {
+  const savedSchemes =
+    useSavedSchemes();
 
-export function useSavedSchemes() {
-  const { isLoaded, isSignedIn, getToken } = useAuth();
-  const { user } = useUser();
+  return (
+    <SavedSchemesContext.Provider
+      value={savedSchemes}
+    >
+      {children}
+    </SavedSchemesContext.Provider>
+  );
+}
 
-  const [savedSchemes, setSavedSchemes] = useState<SavedScheme[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  const loadSavedSchemes = useCallback(async () => {
-    if (!isLoaded) return;
-
-    if (!isSignedIn || !user) {
-      setSavedSchemes([]);
-      setLoading(false);
-      return;
-    }
-
-    try {
-      setLoading(true);
-
-      const supabase = createClerkSupabaseClient(getToken);
-
-      const { data, error } = await supabase
-        .from("saved_schemes")
-        .select("scheme_slug, created_at")
-        .eq("user_id", user.id)
-        .order("created_at", { ascending: false });
-
-      if (error) {
-        console.error("Error loading saved schemes:", error);
-        return;
-      }
-
-      setSavedSchemes(
-        (data ?? []).map((item) => ({
-          slug: item.scheme_slug,
-          createdAt: item.created_at,
-        }))
-      );
-    } catch (error) {
-      console.error("Error loading saved schemes:", error);
-    } finally {
-      setLoading(false);
-    }
-  }, [isLoaded, isSignedIn, user, getToken]);
-
-  useEffect(() => {
-    loadSavedSchemes();
-  }, [loadSavedSchemes]);
-
-  /*
-   * Listen for changes made by FavoriteButton,
-   * Saved page, Dashboard, etc.
-   */
-  useEffect(() => {
-    function handleSavedSchemesChanged() {
-      loadSavedSchemes();
-    }
-
-    window.addEventListener(
-      SAVED_SCHEMES_CHANGED,
-      handleSavedSchemesChanged
-    );
-
-    return () => {
-      window.removeEventListener(
-        SAVED_SCHEMES_CHANGED,
-        handleSavedSchemesChanged
-      );
-    };
-  }, [loadSavedSchemes]);
-
-  const removeScheme = useCallback(
-    async (slug: string) => {
-      if (!user) return false;
-
-      try {
-        const supabase = createClerkSupabaseClient(getToken);
-
-        const { error } = await supabase
-          .from("saved_schemes")
-          .delete()
-          .eq("user_id", user.id)
-          .eq("scheme_slug", slug);
-
-        if (error) {
-          console.error("Error removing saved scheme:", error);
-          return false;
-        }
-
-        setSavedSchemes((current) =>
-          current.filter((scheme) => scheme.slug !== slug)
-        );
-
-        window.dispatchEvent(
-          new Event(SAVED_SCHEMES_CHANGED)
-        );
-
-        return true;
-      } catch (error) {
-        console.error("Error removing saved scheme:", error);
-        return false;
-      }
-    },
-    [user, getToken]
+export function useSavedSchemesContext() {
+  const context = useContext(
+    SavedSchemesContext
   );
 
-  return {
-    savedSchemes,
-    savedCount: savedSchemes.length,
-    loading,
-    refresh: loadSavedSchemes,
-    removeScheme,
-  };
+  if (context === undefined) {
+    throw new Error(
+      "useSavedSchemesContext must be used inside SavedSchemesProvider"
+    );
+  }
+
+  return context;
 }
+
+export default SavedSchemesContext;

@@ -1,445 +1,468 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { schemes } from "../../../data/schemes";
+import {
+  ArrowLeft,
+  ArrowRight,
+  BookOpen,
+  CheckCircle2,
+  ExternalLink,
+  FileText,
+  Info,
+  ShieldCheck,
+} from "lucide-react";
 
-type PageProps = {
-  params: Promise<{
-    slug: string;
-  }>;
-};
+import {
+  explainers,
+  getExplainer,
+} from "../../../data/explainers";
 
 export function generateStaticParams() {
-  return schemes.map((scheme) => ({
-    slug: scheme.slug,
+  return explainers.map((explainer) => ({
+    slug: explainer.slug,
   }));
 }
 
-function formatIncome(amount?: number) {
-  if (!amount) return "Depends on scheme rules";
-  return `₹${amount.toLocaleString("en-IN")} per year`;
-}
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ slug: string }>;
+}) {
+  const { slug } = await params;
 
-function formatAge(minAge?: number, maxAge?: number) {
-  if (minAge && maxAge) return `${minAge}–${maxAge} years`;
-  if (minAge) return `${minAge}+ years`;
-  if (maxAge) return `Up to ${maxAge} years`;
-  return "Depends on scheme rules";
+  const explainer = getExplainer(slug);
+
+  if (!explainer) {
+    return {
+      title: "Explainer Not Found",
+    };
+  }
+
+  return {
+    title: explainer.title,
+    description: explainer.summary,
+  };
 }
 
 export default async function ExplainerDetailPage({
   params,
-}: PageProps) {
+}: {
+  params: Promise<{ slug: string }>;
+}) {
   const { slug } = await params;
 
-  const scheme = schemes.find((item) => item.slug === slug);
+  const explainer = getExplainer(slug);
 
-  if (!scheme) {
+  if (!explainer) {
     notFound();
   }
 
+  const officialUrl =
+    explainer.schemeSlug === "pm-kisan"
+      ? "https://pmkisan.gov.in/"
+      : explainer.schemeSlug === "pm-vishwakarma"
+        ? "https://pmvishwakarma.gov.in/"
+        : "https://pmjay.gov.in/";
+
   return (
-    <main className="min-h-screen bg-slate-50">
-      {/* Breadcrumb */}
-      <div className="mx-auto max-w-6xl px-4 pt-8 sm:px-6 lg:px-8">
-        <div className="flex flex-wrap items-center gap-2 text-sm text-slate-500">
-          <Link href="/" className="hover:text-blue-700">
-            Home
-          </Link>
-
-          <span>/</span>
-
-          <Link href="/explainers" className="hover:text-blue-700">
-            Explainers
-          </Link>
-
-          <span>/</span>
-
-          <span className="text-slate-700">{scheme.name}</span>
-        </div>
-      </div>
+    <main className="min-h-screen bg-[#FFFFFF]">
 
       {/* Hero */}
-      <section className="mx-auto max-w-6xl px-4 pb-12 pt-8 sm:px-6 lg:px-8">
-        <div className="rounded-3xl bg-gradient-to-br from-blue-700 via-blue-600 to-indigo-700 p-6 text-white shadow-xl sm:p-10">
-          <div className="max-w-3xl">
-            <div className="mb-4 inline-flex rounded-full bg-white/15 px-3 py-1 text-sm font-medium">
-              {scheme.category}
+      <section className="bg-[#111827]">
+
+        <div className="mx-auto max-w-7xl px-6 py-12 sm:px-8 lg:px-10 lg:py-16">
+
+          <Link
+            href="/explainers"
+            className="inline-flex items-center gap-2 text-sm font-semibold text-[#FFFFFF]/70 transition hover:text-[#FFFFFF]"
+          >
+            <ArrowLeft size={16} />
+            Back to Explainers
+          </Link>
+
+          <div className="mt-8 max-w-4xl">
+
+            <div className="inline-flex items-center gap-2 rounded-full border border-[#FFFFFF]/20 px-4 py-2 text-sm font-semibold text-[#FFFFFF]">
+              <BookOpen size={16} />
+              {explainer.category}
             </div>
 
-            <h1 className="text-3xl font-bold tracking-tight sm:text-5xl">
-              {scheme.name}
+            <h1 className="mt-6 text-4xl font-extrabold leading-[1.08] tracking-tight text-[#FFFFFF] sm:text-5xl lg:text-6xl">
+              {explainer.title}
             </h1>
 
-            <p className="mt-5 text-base leading-7 text-blue-50 sm:text-lg">
-              {scheme.shortDescription}
+            <p className="mt-6 max-w-3xl text-base leading-7 text-[#FFFFFF]/75 sm:text-lg">
+              {explainer.summary}
             </p>
 
-            <div className="mt-6 flex flex-wrap gap-3">
-              <Link
-                href={`/schemes/${scheme.slug}`}
-                className="rounded-xl bg-white px-5 py-3 text-sm font-semibold text-blue-700 shadow-sm transition hover:bg-blue-50"
-              >
-                View Scheme Details
-              </Link>
-
-              <a
-                href={scheme.officialUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="rounded-xl border border-white/30 bg-white/10 px-5 py-3 text-sm font-semibold text-white transition hover:bg-white/20"
-              >
-                Official Source ↗
-              </a>
-            </div>
           </div>
+
         </div>
+
       </section>
 
-      {/* Main content */}
-      <section className="mx-auto max-w-6xl px-4 pb-16 sm:px-6 lg:px-8">
-        <div className="grid gap-8 lg:grid-cols-[1fr_340px]">
-          {/* Article */}
-          <article className="space-y-6">
-            {/* What is this scheme? */}
-            <section className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm sm:p-8">
-              <h2 className="text-2xl font-bold text-slate-900">
-                What is {scheme.name}?
-              </h2>
+      {/* Content */}
+      <section>
 
-              <p className="mt-4 leading-7 text-slate-600">
-                {scheme.description}
-              </p>
+        <div className="mx-auto grid max-w-7xl gap-10 px-6 py-12 sm:px-8 lg:grid-cols-[minmax(0,1fr)_300px] lg:px-10 lg:py-16">
 
-              <p className="mt-4 leading-7 text-slate-600">
-                This explainer is designed to help you understand the scheme
-                before you visit the official website or start an application.
+          <article className="min-w-0">
+
+            {/* What */}
+            <section>
+              <SectionTitle
+                icon={<Info size={20} />}
+                title="What is it?"
+              />
+
+              <p className="mt-4 text-base leading-8 text-[#111827]/70">
+                {explainer.whatIsIt}
               </p>
             </section>
 
-            {/* Who can benefit */}
-            <section className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm sm:p-8">
-              <h2 className="text-2xl font-bold text-slate-900">
-                Who can benefit?
-              </h2>
+            {/* Why */}
+            <section className="mt-12">
 
-              <p className="mt-3 text-slate-600">
-                The following are the main eligibility factors currently
-                associated with this scheme:
+              <SectionTitle
+                icon={<BookOpen size={20} />}
+                title="Why does it exist?"
+              />
+
+              <p className="mt-4 text-base leading-8 text-[#111827]/70">
+                {explainer.why}
               </p>
 
-              <ul className="mt-5 space-y-3">
-                {scheme.eligibilitySummary.map((item) => (
-                  <li
-                    key={item}
-                    className="flex gap-3 rounded-xl bg-slate-50 p-4 text-sm leading-6 text-slate-700"
-                  >
-                    <span className="mt-1 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-blue-100 text-xs font-bold text-blue-700">
-                      ✓
-                    </span>
+            </section>
 
-                    <span>{item}</span>
-                  </li>
-                ))}
-              </ul>
+            {/* Who */}
+            <section className="mt-12">
 
-              <div className="mt-6 rounded-xl border border-amber-200 bg-amber-50 p-4">
-                <p className="text-sm leading-6 text-amber-800">
-                  <strong>Important:</strong> This is only a simple guide.
-                  Final eligibility depends on the official scheme rules,
-                  verification process, and your individual circumstances.
-                </p>
-              </div>
+              <SectionTitle
+                icon={<CheckCircle2 size={20} />}
+                title="Who is it for?"
+              />
+
+              <p className="mt-4 text-base leading-8 text-[#111827]/70">
+                {explainer.who}
+              </p>
+
             </section>
 
             {/* Benefits */}
-            <section className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm sm:p-8">
-              <h2 className="text-2xl font-bold text-slate-900">
-                What are the benefits?
-              </h2>
+            <section className="mt-12">
 
-              <div className="mt-5 grid gap-3 sm:grid-cols-2">
-                {scheme.benefits.map((benefit) => (
-                  <div
-                    key={benefit}
-                    className="rounded-xl border border-slate-200 p-4"
-                  >
-                    <div className="flex gap-3">
-                      <span className="text-lg text-green-600">✓</span>
+              <SectionTitle
+                icon={<CheckCircle2 size={20} />}
+                title="Benefits"
+              />
 
-                      <p className="text-sm leading-6 text-slate-700">
+              <div className="mt-5 space-y-3">
+
+                {explainer.benefits.map(
+                  (benefit) => (
+                    <div
+                      key={benefit}
+                      className="flex items-start gap-3 rounded-xl border border-[#111827]/10 p-4"
+                    >
+
+                      <CheckCircle2
+                        size={19}
+                        className="mt-0.5 shrink-0 text-[#16A34A]"
+                      />
+
+                      <p className="text-sm leading-6 text-[#111827]/75">
                         {benefit}
                       </p>
+
                     </div>
-                  </div>
-                ))}
+                  )
+                )}
+
               </div>
+
+            </section>
+
+            {/* Eligibility */}
+            <section className="mt-12">
+
+              <SectionTitle
+                icon={<ShieldCheck size={20} />}
+                title="Eligibility"
+              />
+
+              <div className="mt-5 space-y-3">
+
+                {explainer.eligibility.map(
+                  (item) => (
+                    <div
+                      key={item}
+                      className="flex items-start gap-3"
+                    >
+
+                      <CheckCircle2
+                        size={18}
+                        className="mt-0.5 shrink-0 text-[#16A34A]"
+                      />
+
+                      <p className="text-sm leading-6 text-[#111827]/75">
+                        {item}
+                      </p>
+
+                    </div>
+                  )
+                )}
+
+              </div>
+
+              <div className="mt-6 rounded-xl border border-[#2563EB]/20 bg-[#2563EB]/10 p-5">
+
+                <p className="text-sm leading-6 text-[#111827]/75">
+                  This explanation is for general understanding.
+                  Final eligibility is determined under the applicable
+                  government rules and verification process.
+                </p>
+
+              </div>
+
             </section>
 
             {/* Documents */}
-            <section className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm sm:p-8">
-              <h2 className="text-2xl font-bold text-slate-900">
-                Documents you may need
-              </h2>
+            <section className="mt-12">
 
-              <p className="mt-3 text-slate-600">
-                Keep the following documents or information ready where
-                applicable:
+              <SectionTitle
+                icon={<FileText size={20} />}
+                title="Documents you may need"
+              />
+
+              <div className="mt-5 grid gap-3 sm:grid-cols-2">
+
+                {explainer.documents.map(
+                  (document) => (
+                    <div
+                      key={document}
+                      className="rounded-xl border border-[#111827]/10 p-4"
+                    >
+
+                      <p className="text-sm font-semibold leading-6 text-[#111827]/75">
+                        {document}
+                      </p>
+
+                    </div>
+                  )
+                )}
+
+              </div>
+
+            </section>
+
+            {/* How it works */}
+            <section className="mt-12">
+
+              <SectionTitle
+                icon={<ArrowRight size={20} />}
+                title="How does it work?"
+              />
+
+              <div className="mt-6 space-y-4">
+
+                {explainer.howItWorks.map(
+                  (step, index) => (
+                    <div
+                      key={step}
+                      className="flex items-start gap-4"
+                    >
+
+                      <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#2563EB] text-sm font-bold text-[#FFFFFF]">
+                        {index + 1}
+                      </div>
+
+                      <p className="pt-1 text-sm leading-7 text-[#111827]/75">
+                        {step}
+                      </p>
+
+                    </div>
+                  )
+                )}
+
+              </div>
+
+            </section>
+
+            {/* Application */}
+            <section className="mt-12">
+
+              <SectionTitle
+                icon={<FileText size={20} />}
+                title="How to apply"
+              />
+
+              <p className="mt-4 text-base leading-8 text-[#111827]/70">
+                {explainer.howToApply}
               </p>
 
-              <ul className="mt-5 space-y-3">
-                {scheme.documents.map((document) => (
-                  <li
-                    key={document}
-                    className="flex items-start gap-3 text-sm text-slate-700"
-                  >
-                    <span className="mt-0.5 text-blue-600">•</span>
-                    <span>{document}</span>
-                  </li>
-                ))}
-              </ul>
+              <a
+                href={officialUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="mt-6 inline-flex items-center gap-2 rounded-xl bg-[#2563EB] px-5 py-3 text-sm font-bold text-[#FFFFFF] transition hover:bg-[#111827]"
+              >
+                Visit Official Website
+                <ExternalLink size={16} />
+              </a>
+
             </section>
 
-            {/* Things to know */}
-            {scheme.exclusions && scheme.exclusions.length > 0 && (
-              <section className="rounded-2xl border border-red-100 bg-red-50 p-6 sm:p-8">
-                <h2 className="text-2xl font-bold text-slate-900">
-                  Things that may exclude you
-                </h2>
+            {/* FAQs */}
+            <section className="mt-12">
 
-                <p className="mt-3 text-slate-600">
-                  Some people or situations may not qualify under the
-                  applicable rules.
-                </p>
+              <SectionTitle
+                icon={<Info size={20} />}
+                title="Frequently asked questions"
+              />
 
-                <ul className="mt-5 space-y-3">
-                  {scheme.exclusions.map((item) => (
-                    <li
-                      key={item}
-                      className="flex items-start gap-3 text-sm leading-6 text-slate-700"
+              <div className="mt-5 space-y-4">
+
+                {explainer.faqs.map(
+                  (faq) => (
+                    <div
+                      key={faq.question}
+                      className="rounded-xl border border-[#111827]/10 p-5"
                     >
-                      <span className="mt-1 text-red-600">!</span>
-                      <span>{item}</span>
-                    </li>
-                  ))}
-                </ul>
-              </section>
-            )}
 
-            {/* How to proceed */}
-            <section className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm sm:p-8">
-              <h2 className="text-2xl font-bold text-slate-900">
-                What should you do next?
+                      <h3 className="text-base font-extrabold text-[#111827]">
+                        {faq.question}
+                      </h3>
+
+                      <p className="mt-2 text-sm leading-6 text-[#111827]/65">
+                        {faq.answer}
+                      </p>
+
+                    </div>
+                  )
+                )}
+
+              </div>
+
+            </section>
+
+            {/* Disclaimer */}
+            <section className="mt-12 rounded-2xl bg-[#111827] p-6 sm:p-8">
+
+              <h2 className="text-xl font-extrabold text-[#FFFFFF]">
+                Important
               </h2>
 
-              <div className="mt-6 space-y-5">
-                <div className="flex gap-4">
-                  <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-blue-100 font-bold text-blue-700">
-                    1
-                  </div>
+              <p className="mt-3 text-sm leading-6 text-[#FFFFFF]/70">
+                SchemeSamjho is an information platform and is
+                not a government department or official government
+                portal. Scheme rules, eligibility conditions,
+                documents and application processes can change.
+                Always verify the latest information through the
+                official source before applying.
+              </p>
 
-                  <div>
-                    <h3 className="font-semibold text-slate-900">
-                      Check your basic eligibility
-                    </h3>
-
-                    <p className="mt-1 text-sm leading-6 text-slate-600">
-                      Use SchemeSamjho&apos;s preliminary eligibility checker
-                      to see which schemes may be relevant to your profile.
-                    </p>
-                  </div>
-                </div>
-
-                <div className="flex gap-4">
-                  <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-blue-100 font-bold text-blue-700">
-                    2
-                  </div>
-
-                  <div>
-                    <h3 className="font-semibold text-slate-900">
-                      Read the official requirements
-                    </h3>
-
-                    <p className="mt-1 text-sm leading-6 text-slate-600">
-                      Government rules can change, so always confirm the latest
-                      requirements from the official source.
-                    </p>
-                  </div>
-                </div>
-
-                <div className="flex gap-4">
-                  <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-blue-100 font-bold text-blue-700">
-                    3
-                  </div>
-
-                  <div>
-                    <h3 className="font-semibold text-slate-900">
-                      Apply through the official channel
-                    </h3>
-
-                    <p className="mt-1 text-sm leading-6 text-slate-600">
-                      Use the official website, portal, bank, department, or
-                      other channel specified by the government.
-                    </p>
-                  </div>
-                </div>
-              </div>
-
-              <div className="mt-8 flex flex-wrap gap-3">
-                <Link
-                  href="/eligibility"
-                  className="rounded-xl bg-blue-600 px-5 py-3 text-sm font-semibold text-white transition hover:bg-blue-700"
-                >
-                  Check Eligibility
-                </Link>
-
-                <a
-                  href={scheme.officialUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="rounded-xl border border-slate-300 px-5 py-3 text-sm font-semibold text-slate-700 transition hover:bg-slate-50"
-                >
-                  Visit Official Website ↗
-                </a>
-              </div>
             </section>
+
           </article>
 
           {/* Sidebar */}
-          <aside className="lg:sticky lg:top-24 lg:self-start">
-            <div className="space-y-5">
-              {/* Quick summary */}
-              <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-                <h2 className="text-lg font-bold text-slate-900">
-                  Quick Summary
-                </h2>
+          <aside className="lg:sticky lg:top-28 lg:self-start">
 
-                <div className="mt-5 divide-y divide-slate-100">
-                  <div className="py-3">
-                    <p className="text-xs font-medium uppercase tracking-wide text-slate-400">
-                      Category
-                    </p>
-                    <p className="mt-1 text-sm font-medium text-slate-800">
-                      {scheme.category}
-                    </p>
+            <div className="rounded-2xl border border-[#111827]/10 bg-[#FFFFFF] p-5">
+
+              <p className="text-xs font-bold uppercase tracking-wide text-[#2563EB]">
+                On this page
+              </p>
+
+              <nav className="mt-4 space-y-1">
+
+                {[
+                  "What is it?",
+                  "Why does it exist?",
+                  "Who is it for?",
+                  "Benefits",
+                  "Eligibility",
+                  "Documents",
+                  "How does it work?",
+                  "How to apply",
+                  "FAQs",
+                ].map((item) => (
+                  <div
+                    key={item}
+                    className="rounded-lg px-3 py-2 text-sm font-semibold text-[#111827]/65"
+                  >
+                    {item}
                   </div>
+                ))}
 
-                  <div className="py-3">
-                    <p className="text-xs font-medium uppercase tracking-wide text-slate-400">
-                      Age
-                    </p>
-                    <p className="mt-1 text-sm font-medium text-slate-800">
-                      {formatAge(scheme.minAge, scheme.maxAge)}
-                    </p>
-                  </div>
+              </nav>
 
-                  <div className="py-3">
-                    <p className="text-xs font-medium uppercase tracking-wide text-slate-400">
-                      Income
-                    </p>
-                    <p className="mt-1 text-sm font-medium text-slate-800">
-                      {formatIncome(scheme.maxIncome)}
-                    </p>
-                  </div>
+              <div className="mt-5 border-t border-[#111827]/10 pt-5">
 
-                  <div className="py-3">
-                    <p className="text-xs font-medium uppercase tracking-wide text-slate-400">
-                      Occupations
-                    </p>
-                    <p className="mt-1 text-sm leading-6 text-slate-800">
-                      {scheme.occupations.join(", ")}
-                    </p>
-                  </div>
-
-                  <div className="py-3">
-                    <p className="text-xs font-medium uppercase tracking-wide text-slate-400">
-                      Last reviewed
-                    </p>
-                    <p className="mt-1 text-sm font-medium text-slate-800">
-                      {scheme.lastVerified}
-                    </p>
-                  </div>
-                </div>
-              </div>
-
-              {/* CTA */}
-              <div className="rounded-2xl bg-slate-900 p-6 text-white shadow-sm">
-                <h2 className="text-lg font-bold">
-                  Not sure if this scheme is for you?
-                </h2>
-
-                <p className="mt-2 text-sm leading-6 text-slate-300">
-                  Answer a few simple questions and get a preliminary list of
-                  schemes that may match your profile.
-                </p>
-
-                <Link
-                  href="/eligibility"
-                  className="mt-5 block rounded-xl bg-white px-4 py-3 text-center text-sm font-semibold text-slate-900 transition hover:bg-slate-100"
-                >
-                  Check My Eligibility
-                </Link>
-              </div>
-
-              {/* Official source */}
-              <div className="rounded-2xl border border-blue-100 bg-blue-50 p-6">
-                <p className="text-xs font-semibold uppercase tracking-wide text-blue-600">
+                <p className="text-xs font-bold uppercase tracking-wide text-[#16A34A]">
                   Official source
                 </p>
 
-                <p className="mt-2 text-sm leading-6 text-slate-700">
-                  Always verify the latest eligibility, benefits, documents,
-                  and application process with the official government source.
-                </p>
-
                 <a
-                  href={scheme.officialUrl}
+                  href={officialUrl}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="mt-4 inline-flex text-sm font-semibold text-blue-700 hover:underline"
+                  className="mt-3 flex items-center gap-2 text-sm font-bold text-[#2563EB] transition hover:text-[#111827]"
                 >
-                  Open Official Source ↗
+                  Official Website
+                  <ExternalLink size={15} />
                 </a>
+
               </div>
+
             </div>
+
+            <Link
+              href="/eligibility"
+              className="mt-5 flex items-center justify-between rounded-2xl bg-[#2563EB] p-5 text-[#FFFFFF] transition hover:bg-[#111827]"
+            >
+
+              <div>
+                <p className="text-sm font-extrabold">
+                  Check your eligibility
+                </p>
+
+                <p className="mt-1 text-xs leading-5 text-[#FFFFFF]/75">
+                  Explore schemes using your basic information.
+                </p>
+              </div>
+
+              <ArrowRight size={19} />
+
+            </Link>
+
           </aside>
+
         </div>
+
       </section>
 
-      {/* Bottom CTA */}
-      <section className="border-t border-slate-200 bg-white">
-        <div className="mx-auto max-w-6xl px-4 py-12 text-center sm:px-6 lg:px-8">
-          <h2 className="text-2xl font-bold text-slate-900 sm:text-3xl">
-            Want to explore more government schemes?
-          </h2>
-
-          <p className="mx-auto mt-3 max-w-2xl text-slate-600">
-            Browse schemes by category or use the eligibility checker to find
-            schemes that may be relevant to you.
-          </p>
-
-          <div className="mt-6 flex flex-wrap justify-center gap-3">
-            <Link
-              href="/schemes"
-              className="rounded-xl bg-blue-600 px-5 py-3 text-sm font-semibold text-white transition hover:bg-blue-700"
-            >
-              Explore Schemes
-            </Link>
-
-            <Link
-              href="/compare"
-              className="rounded-xl border border-slate-300 px-5 py-3 text-sm font-semibold text-slate-700 transition hover:bg-slate-50"
-            >
-              Compare Schemes
-            </Link>
-          </div>
-
-          <p className="mx-auto mt-8 max-w-2xl text-xs leading-5 text-slate-500">
-            SchemeSamjho is an independent informational platform. It is not a
-            government website. Information can change, so please verify
-            details with the official source before applying.
-          </p>
-        </div>
-      </section>
     </main>
+  );
+}
+
+function SectionTitle({
+  icon,
+  title,
+}: {
+  icon: React.ReactNode;
+  title: string;
+}) {
+  return (
+    <div className="flex items-center gap-3">
+
+      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#2563EB]/10 text-[#2563EB]">
+        {icon}
+      </div>
+
+      <h2 className="text-2xl font-extrabold tracking-tight text-[#111827] sm:text-3xl">
+        {title}
+      </h2>
+
+    </div>
   );
 }

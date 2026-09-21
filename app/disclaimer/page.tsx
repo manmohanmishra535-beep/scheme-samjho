@@ -1,236 +1,493 @@
 import Link from "next/link";
+import {
+  AlertCircle,
+  ArrowRight,
+  CheckCircle2,
+  ExternalLink,
+  FileText,
+  ShieldCheck,
+} from "lucide-react";
 
 export const metadata = {
-  title: "Disclaimer | SchemeSamjho",
-  description: "Disclaimer for SchemeSamjho.",
+  title: "Disclaimer",
+  description:
+    "Read the SchemeSamjho disclaimer about government scheme information, eligibility and application guidance.",
 };
 
 export default function DisclaimerPage() {
   return (
-    <main className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <section className="border-b bg-white">
-        <div className="mx-auto max-w-4xl px-6 py-14">
-          <p className="text-sm font-semibold uppercase tracking-wider text-blue-700">
-            SchemeSamjho
-          </p>
+    <main className="min-h-screen bg-[#FFFFFF]">
 
-          <h1 className="mt-3 text-4xl font-bold tracking-tight text-gray-900">
-            Disclaimer
-          </h1>
+      {/* Hero */}
+      <section className="bg-[#111827]">
+        <div className="mx-auto max-w-7xl px-6 py-14 sm:px-8 sm:py-16 lg:px-10 lg:py-20">
+          <div className="max-w-3xl">
 
-          <p className="mt-4 text-sm text-gray-500">
-            Last updated: September 2026
-          </p>
+            <div className="inline-flex items-center gap-2 rounded-full border border-[#FFFFFF]/20 px-4 py-2 text-sm font-semibold text-[#FFFFFF]">
+              <AlertCircle size={16} />
+              Important information
+            </div>
+
+            <h1 className="mt-6 text-4xl font-extrabold leading-[1.06] tracking-tight text-[#FFFFFF] sm:text-5xl lg:text-6xl">
+              SchemeSamjho
+              <br />
+              disclaimer.
+            </h1>
+
+            <p className="mt-6 max-w-2xl text-base leading-7 text-[#FFFFFF]/75 sm:text-lg">
+              Please read this information before relying on
+              any scheme details, eligibility information or
+              application guidance provided on this website.
+            </p>
+
+            <p className="mt-5 text-sm font-semibold text-[#FFFFFF]/55">
+              Last updated: September 2026
+            </p>
+
+          </div>
         </div>
       </section>
 
       {/* Content */}
-      <section className="mx-auto max-w-4xl px-6 py-12">
-        <div className="rounded-3xl border bg-white p-6 shadow-sm md:p-10">
-          {/* Main notice */}
-          <div className="rounded-2xl border border-amber-200 bg-amber-50 p-6">
-            <h2 className="text-xl font-bold text-gray-900">
-              Important Notice
-            </h2>
+      <section>
+        <div className="mx-auto max-w-4xl px-6 py-12 sm:px-8 sm:py-16 lg:px-10">
 
-            <p className="mt-3 leading-7 text-gray-700">
-              SchemeSamjho is an independent information platform. It is not
-              an official website of the Government of India, any State
-              Government, or any government department.
-            </p>
+          {/* Main notice */}
+          <div className="rounded-2xl border border-[#111827]/10 bg-[#111827] p-6 sm:p-8">
+
+            <div className="flex items-start gap-4">
+
+              <ShieldCheck
+                size={24}
+                className="mt-0.5 shrink-0 text-[#16A34A]"
+              />
+
+              <div>
+
+                <h2 className="text-xl font-extrabold text-[#FFFFFF]">
+                  SchemeSamjho is an informational platform
+                </h2>
+
+                <p className="mt-3 text-sm leading-7 text-[#FFFFFF]/65">
+                  SchemeSamjho explains government schemes in
+                  simpler language to help users understand
+                  benefits, eligibility, documents and general
+                  application information.
+                </p>
+
+                <p className="mt-3 text-sm leading-7 text-[#FFFFFF]/65">
+                  The website is not a government department,
+                  government portal or official government
+                  authority.
+                </p>
+
+              </div>
+
+            </div>
+
           </div>
 
+          {/* Sections */}
           <div className="mt-10 space-y-10">
-            {/* 1 */}
-            <section>
-              <h2 className="text-2xl font-bold text-gray-900">
-                1. Information Purpose
-              </h2>
 
-              <p className="mt-4 leading-7 text-gray-600">
-                The information available on SchemeSamjho is provided for
-                general informational and educational purposes. Our goal is to
-                make government scheme information easier to understand.
+            {/* 01 */}
+            <DisclaimerSection
+              number="01"
+              title="Information is provided for general guidance"
+            >
+              <p>
+                Information published on SchemeSamjho is intended
+                to help users understand government schemes in
+                simpler terms.
               </p>
 
-              <p className="mt-4 leading-7 text-gray-600">
-                We do not provide government services, approve applications,
-                issue benefits, or make official eligibility decisions.
+              <p>
+                The information should not be treated as an
+                official government decision, notification,
+                approval or legal determination.
               </p>
-            </section>
+            </DisclaimerSection>
 
-            {/* 2 */}
-            <section>
-              <h2 className="text-2xl font-bold text-gray-900">
-                2. Eligibility Checker
-              </h2>
-
-              <p className="mt-4 leading-7 text-gray-600">
-                SchemeSamjho may provide an eligibility checker that compares
-                information entered by a user with the scheme information
-                available in our database.
-              </p>
-
-              <p className="mt-4 leading-7 text-gray-600">
-                The result is only a preliminary indication. It should not be
-                considered an official determination that you are eligible or
-                ineligible for a government scheme.
+            {/* 02 */}
+            <DisclaimerSection
+              number="02"
+              title="Official sources take priority"
+            >
+              <p>
+                Government schemes may have detailed rules,
+                notifications, deadlines, conditions and
+                procedures that can change over time.
               </p>
 
-              <p className="mt-4 leading-7 text-gray-600">
-                Final eligibility is determined by the relevant government
-                authority according to the current rules and verification
-                process.
-              </p>
-            </section>
-
-            {/* 3 */}
-            <section>
-              <h2 className="text-2xl font-bold text-gray-900">
-                3. Scheme Information Can Change
-              </h2>
-
-              <p className="mt-4 leading-7 text-gray-600">
-                Government schemes may change over time. Eligibility
-                requirements, benefits, income limits, documents, deadlines,
-                application procedures, and other conditions may be updated by
-                the relevant authorities.
+              <p>
+                Users should verify current information through
+                the relevant official government website,
+                department, notification or authorised channel
+                before taking action.
               </p>
 
-              <p className="mt-4 leading-7 text-gray-600">
-                Although we aim to keep information useful and accurate, we
-                cannot guarantee that every piece of information is complete,
-                current, or error-free at all times.
-              </p>
-            </section>
+              <div className="mt-5 rounded-xl border border-[#111827]/10 bg-[#111827]/5 p-5">
 
-            {/* 4 */}
-            <section>
-              <h2 className="text-2xl font-bold text-gray-900">
-                4. Always Verify Official Information
-              </h2>
+                <div className="flex items-start gap-3">
 
-              <p className="mt-4 leading-7 text-gray-600">
-                Before making a decision or submitting an application, users
-                should verify the latest information through the relevant
-                official government website or department.
-              </p>
+                  <CheckCircle2
+                    size={19}
+                    className="mt-0.5 shrink-0 text-[#16A34A]"
+                  />
 
-              <div className="mt-5 rounded-2xl border bg-gray-50 p-5">
-                <p className="text-sm font-semibold text-gray-900">
-                  A simple rule:
-                </p>
+                  <p className="text-sm leading-6 text-[#111827]/65">
+                    When SchemeSamjho provides an official source
+                    link, use that source to verify the latest
+                    scheme information.
+                  </p>
 
-                <p className="mt-2 text-sm leading-6 text-gray-600">
-                  Use SchemeSamjho to understand a scheme. Use the official
-                  government source to verify it and apply.
-                </p>
+                </div>
+
               </div>
-            </section>
+            </DisclaimerSection>
 
-            {/* 5 */}
-            <section>
-              <h2 className="text-2xl font-bold text-gray-900">
-                5. External Links
-              </h2>
-
-              <p className="mt-4 leading-7 text-gray-600">
-                SchemeSamjho may provide links to external websites, including
-                official government portals.
+            {/* 03 */}
+            <DisclaimerSection
+              number="03"
+              title="Eligibility information"
+            >
+              <p>
+                SchemeSamjho may provide preliminary eligibility
+                information based on the scheme data available
+                on the platform.
               </p>
 
-              <p className="mt-4 leading-7 text-gray-600">
-                We do not control external websites and are not responsible for
-                their content, availability, privacy practices, or policies.
-              </p>
-            </section>
-
-            {/* 6 */}
-            <section>
-              <h2 className="text-2xl font-bold text-gray-900">
-                6. No Government Affiliation
-              </h2>
-
-              <p className="mt-4 leading-7 text-gray-600">
-                SchemeSamjho does not claim to represent any government
-                authority. The use of government scheme names, logos, or
-                references on the website does not imply government
-                endorsement, partnership, or affiliation.
-              </p>
-            </section>
-
-            {/* 7 */}
-            <section>
-              <h2 className="text-2xl font-bold text-gray-900">
-                7. No Guarantee of Benefits
-              </h2>
-
-              <p className="mt-4 leading-7 text-gray-600">
-                Information on SchemeSamjho should not be interpreted as a
-                guarantee that a user will receive a subsidy, financial
-                assistance, insurance benefit, loan, pension, scholarship, or
-                any other government benefit.
+              <p>
+                A result shown by the SchemeSamjho eligibility
+                checker does not mean that a government
+                department has approved or rejected your
+                eligibility.
               </p>
 
-              <p className="mt-4 leading-7 text-gray-600">
-                Approval depends on the rules, verification, documentation, and
-                decisions of the relevant authority.
+              <p>
+                Final eligibility depends on the applicable
+                official rules and verification process.
               </p>
-            </section>
+            </DisclaimerSection>
 
-            {/* 8 */}
-            <section>
-              <h2 className="text-2xl font-bold text-gray-900">
-                8. Limitation of Responsibility
-              </h2>
-
-              <p className="mt-4 leading-7 text-gray-600">
-                Users are responsible for independently verifying information
-                before relying on it for applications, financial decisions, or
-                other important decisions.
+            {/* 04 */}
+            <DisclaimerSection
+              number="04"
+              title="Benefits and financial information"
+            >
+              <p>
+                Benefits, financial assistance, subsidies,
+                coverage and other scheme details may depend on
+                specific conditions and eligibility requirements.
               </p>
 
-              <p className="mt-4 leading-7 text-gray-600">
-                SchemeSamjho should not be treated as a substitute for official
-                government guidance or professional advice where such advice
-                is required.
+              <p>
+                Amounts and benefits displayed on SchemeSamjho
+                should be verified through the relevant official
+                source before making financial or other decisions.
               </p>
-            </section>
+            </DisclaimerSection>
 
-            {/* 9 */}
-            <section>
-              <h2 className="text-2xl font-bold text-gray-900">
-                9. Changes to This Disclaimer
-              </h2>
-
-              <p className="mt-4 leading-7 text-gray-600">
-                We may update this Disclaimer as the SchemeSamjho website and
-                its features develop. Changes will be reflected on this page.
+            {/* 05 */}
+            <DisclaimerSection
+              number="05"
+              title="Documents and application procedures"
+            >
+              <p>
+                Document lists and application instructions shown
+                on SchemeSamjho are provided as general guidance.
               </p>
-            </section>
+
+              <p>
+                The exact documents, forms, verification
+                requirements, application channels and procedures
+                may vary according to the applicable government
+                rules.
+              </p>
+
+              <p>
+                Always check the current requirements before
+                submitting an application.
+              </p>
+            </DisclaimerSection>
+
+            {/* 06 */}
+            <DisclaimerSection
+              number="06"
+              title="No guarantee of approval"
+            >
+              <p>
+                Information on SchemeSamjho does not guarantee
+                that an application will be accepted or that a
+                benefit will be provided.
+              </p>
+
+              <p>
+                Approval, rejection, verification and benefit
+                delivery are determined by the relevant
+                government authority according to its applicable
+                rules and procedures.
+              </p>
+            </DisclaimerSection>
+
+            {/* 07 */}
+            <DisclaimerSection
+              number="07"
+              title="Information may change"
+            >
+              <p>
+                Government schemes can change because of new
+                notifications, amendments, budget decisions,
+                administrative changes or updated procedures.
+              </p>
+
+              <p>
+                Although SchemeSamjho may display a last verified
+                date for scheme information, users should still
+                verify important details through the current
+                official source.
+              </p>
+            </DisclaimerSection>
+
+            {/* 08 */}
+            <DisclaimerSection
+              number="08"
+              title="External websites"
+            >
+              <p>
+                SchemeSamjho may link to government websites and
+                other external websites for additional
+                information.
+              </p>
+
+              <p>
+                SchemeSamjho does not control the content,
+                availability or policies of external websites.
+              </p>
+
+              <a
+                href="https://www.myscheme.gov.in/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="mt-5 inline-flex items-center gap-2 text-sm font-bold text-[#2563EB] hover:text-[#111827]"
+              >
+                Visit myScheme
+                <ExternalLink size={15} />
+              </a>
+
+            </DisclaimerSection>
+
+            {/* 09 */}
+            <DisclaimerSection
+              number="09"
+              title="No professional advice"
+            >
+              <p>
+                Content on SchemeSamjho is not intended to
+                replace legal, financial, tax, professional or
+                government advice.
+              </p>
+
+              <p>
+                If your situation requires professional advice,
+                consult the appropriate qualified professional or
+                government authority.
+              </p>
+            </DisclaimerSection>
 
             {/* 10 */}
-            <section>
-              <h2 className="text-2xl font-bold text-gray-900">
-                10. Contact Us
-              </h2>
+            <DisclaimerSection
+              number="10"
+              title="Accuracy and completeness"
+            >
+              <p>
+                SchemeSamjho aims to present information clearly
+                and accurately, but the website cannot guarantee
+                that every piece of information is complete,
+                current or error-free at all times.
+              </p>
 
-              <p className="mt-4 leading-7 text-gray-600">
-                If you find information that appears incorrect or outdated,
-                please contact us and provide the relevant scheme and details.
+              <p>
+                Users should independently verify important
+                information before relying on it.
+              </p>
+            </DisclaimerSection>
+
+            {/* 11 */}
+            <DisclaimerSection
+              number="11"
+              title="Contact and corrections"
+            >
+              <p>
+                If you find information that appears outdated,
+                incomplete or incorrect, you can contact
+                SchemeSamjho and provide the relevant details.
               </p>
 
               <Link
                 href="/contact"
-                className="mt-5 inline-flex rounded-xl bg-blue-700 px-5 py-3 font-semibold text-white transition hover:bg-blue-800"
+                className="mt-5 inline-flex items-center gap-2 rounded-xl bg-[#2563EB] px-5 py-3 text-sm font-bold text-[#FFFFFF] transition hover:bg-[#111827]"
               >
-                Contact SchemeSamjho
+                Contact us
+                <ArrowRight size={17} />
               </Link>
-            </section>
+            </DisclaimerSection>
+
           </div>
+
+          {/* Final notice */}
+          <div className="mt-12 rounded-2xl border border-[#111827]/10 bg-[#FFFFFF] p-6 sm:p-8">
+
+            <div className="flex items-start gap-4">
+
+              <FileText
+                size={22}
+                className="mt-0.5 shrink-0 text-[#2563EB]"
+              />
+
+              <div>
+
+                <h2 className="text-xl font-extrabold text-[#111827]">
+                  Before you apply
+                </h2>
+
+                <p className="mt-3 text-sm leading-7 text-[#111827]/65">
+                  Use SchemeSamjho to understand a scheme,
+                  then verify the current eligibility,
+                  documents, benefits, deadlines and application
+                  process through the official government source.
+                </p>
+
+              </div>
+
+            </div>
+
+          </div>
+
+          {/* CTA */}
+          <div className="mt-10 rounded-2xl bg-[#111827] p-6 sm:p-8">
+
+            <div className="flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
+
+              <div>
+
+                <p className="text-sm font-bold text-[#16A34A]">
+                  Continue exploring
+                </p>
+
+                <h2 className="mt-2 text-xl font-extrabold text-[#FFFFFF]">
+                  Explore government schemes
+                </h2>
+
+                <p className="mt-2 text-sm leading-6 text-[#FFFFFF]/60">
+                  Discover schemes and read simple explanations
+                  before checking the official source.
+                </p>
+
+              </div>
+
+              <Link
+                href="/schemes"
+                className="inline-flex shrink-0 items-center justify-center gap-2 rounded-xl bg-[#2563EB] px-5 py-3 text-sm font-bold text-[#FFFFFF] transition hover:bg-[#FFFFFF] hover:text-[#111827]"
+              >
+                Browse schemes
+                <ArrowRight size={17} />
+              </Link>
+
+            </div>
+
+          </div>
+
         </div>
       </section>
+
+      {/* Footer navigation */}
+      <section className="border-t border-[#111827]/10 bg-[#111827]/5">
+
+        <div className="mx-auto flex max-w-7xl flex-col gap-4 px-6 py-10 sm:flex-row sm:items-center sm:justify-between sm:px-8 lg:px-10">
+
+          <div>
+
+            <p className="text-sm font-bold text-[#2563EB]">
+              SchemeSamjho
+            </p>
+
+            <p className="mt-1 text-sm text-[#111827]/60">
+              Government schemes explained simply.
+            </p>
+
+          </div>
+
+          <div className="flex flex-wrap gap-5">
+
+            <Link
+              href="/privacy"
+              className="text-sm font-semibold text-[#111827]/60 transition hover:text-[#2563EB]"
+            >
+              Privacy
+            </Link>
+
+            <Link
+              href="/contact"
+              className="text-sm font-semibold text-[#111827]/60 transition hover:text-[#2563EB]"
+            >
+              Contact
+            </Link>
+
+            <Link
+              href="/"
+              className="inline-flex items-center gap-2 text-sm font-bold text-[#2563EB] transition hover:text-[#111827]"
+            >
+              Home
+              <ArrowRight size={16} />
+            </Link>
+
+          </div>
+
+        </div>
+
+      </section>
+
     </main>
+  );
+}
+
+/* -------------------------------------------------------------------------- */
+/* Disclaimer Section                                                         */
+/* -------------------------------------------------------------------------- */
+
+function DisclaimerSection({
+  number,
+  title,
+  children,
+}: {
+  number: string;
+  title: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <section>
+
+      <div className="flex items-start gap-4">
+
+        <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-[#2563EB] text-xs font-extrabold text-[#FFFFFF]">
+          {number}
+        </div>
+
+        <div className="min-w-0 flex-1">
+
+          <h2 className="text-2xl font-extrabold tracking-tight text-[#111827]">
+            {title}
+          </h2>
+
+          <div className="mt-4 space-y-4 text-sm leading-7 text-[#111827]/65">
+            {children}
+          </div>
+
+        </div>
+
+      </div>
+
+    </section>
   );
 }
