@@ -24,7 +24,7 @@ export default function Hero() {
         {/* =========================
             HERO HEADING
         ========================== */}
-        <h1 className="max-w-4xl text-4xl font-extrabold leading-[1.05] tracking-tight text-[#FFFFFF] sm:text-5xl lg:text-6xl">
+        <h1 className="max-w-4xl text-4xl font-extrabold leading-[1.05] tracking-tight text-[#FFFFFF] sm:text-5xl lg:text-[56px]">
           Government benefits made easier to discover.
         </h1>
 

@@ -9,12 +9,25 @@ import Disclaimer from "../Components/Home/Disclaimer";
 export default function Home() {
   return (
     <>
+      {/* Hero */}
       <Hero />
+
+      {/* Introduction */}
       <QuickIntro />
+
+      {/* Browse by category */}
       <Categories />
+
+      {/* Featured schemes */}
       <FeaturedSchemes />
+
+      {/* How it works */}
       <HowItWorks />
+
+      {/* Eligibility CTA */}
       <HomeCTA />
+
+      {/* Disclaimer */}
       <Disclaimer />
     </>
   );

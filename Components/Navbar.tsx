@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import {
   ChevronDown,
   Menu,
@@ -13,41 +14,83 @@ import AuthModal from "./AuthModal";
 import UserMenu from "./UserMenu";
 
 export default function Navbar() {
+  const pathname = usePathname();
+
   const [moreOpen, setMoreOpen] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [authOpen, setAuthOpen] = useState(false);
 
+  /* =====================================
+     SHARED DESKTOP NAVIGATION STYLE
+  ====================================== */
+
   const navItem =
-    "inline-flex items-center text-[16px] font-bold leading-none text-[#111827] transition hover:text-[#2563EB]";
+    "relative inline-flex items-center text-[16px] font-bold leading-none text-[#111827] transition hover:text-[#2563EB]";
+
+  /* =====================================
+     CLOSE MENUS
+  ====================================== */
 
   function closeMenus() {
     setMoreOpen(false);
     setMobileOpen(false);
   }
 
+  /* =====================================
+     OPEN SIGN IN
+  ====================================== */
+
   function openSignIn() {
     closeMenus();
     setAuthOpen(true);
   }
 
+  /* =====================================
+     ACTIVE NAVIGATION
+  ====================================== */
+
+  function isActive(href: string) {
+    return (
+      pathname === href ||
+      pathname.startsWith(`${href}/`)
+    );
+  }
+
+  /* =====================================
+     MORE ACTIVE STATE
+  ====================================== */
+
+  function isMoreActive() {
+    return (
+      pathname === "/saved" ||
+      pathname.startsWith("/saved/") ||
+      pathname === "/about" ||
+      pathname.startsWith("/about/") ||
+      pathname === "/contact" ||
+      pathname.startsWith("/contact/")
+    );
+  }
+
   return (
     <>
-      {/* =========================
+      {/* =================================
           HEADER
-      ========================== */}
+      ================================== */}
+
       <header className="sticky top-0 z-50 border-b border-[#111827]/10 bg-[#FFFFFF]">
         <div className="mx-auto flex h-[80px] max-w-[1400px] items-center justify-between px-6 lg:px-10">
 
-          {/* =========================
+          {/* =================================
               LOGO
-          ========================== */}
+          ================================== */}
+
           <Link
             href="/"
             onClick={closeMenus}
             className="flex items-center gap-3"
             aria-label="SchemeSamjho home"
           >
-            <div className="flex h-[52px] w-[52px] items-center justify-center rounded-2xl bg-[#2563EB] text-2xl font-extrabold text-[#FFFFFF]">
+            <div className="flex h-[52px] w-[52px] shrink-0 items-center justify-center rounded-2xl bg-[#2563EB] text-2xl font-extrabold text-[#FFFFFF]">
               S
             </div>
 
@@ -65,48 +108,86 @@ export default function Navbar() {
             </div>
           </Link>
 
-          {/* =========================
+          {/* =================================
               DESKTOP NAVIGATION
-          ========================== */}
+          ================================== */}
+
           <nav
             className="hidden items-center gap-9 lg:flex"
             aria-label="Main navigation"
           >
-            {/* Schemes */}
+            {/* ===============================
+                SCHEMES
+            ================================ */}
+
             <Link
               href="/schemes"
-              className={navItem}
+              className={`${navItem} ${
+                isActive("/schemes")
+                  ? "after:absolute after:-bottom-[31px] after:left-0 after:right-0 after:h-[2px] after:bg-[#2563EB]"
+                  : ""
+              }`}
             >
-              Schemes
+              <span className="font-bold">
+                Schemes
+              </span>
             </Link>
 
-            {/* Eligibility */}
+            {/* ===============================
+                ELIGIBILITY
+            ================================ */}
+
             <Link
               href="/eligibility"
-              className={navItem}
+              className={`${navItem} ${
+                isActive("/eligibility")
+                  ? "after:absolute after:-bottom-[31px] after:left-0 after:right-0 after:h-[2px] after:bg-[#2563EB]"
+                  : ""
+              }`}
             >
-              Eligibility
+              <span className="font-bold">
+                Eligibility
+              </span>
             </Link>
 
-            {/* Explainers */}
+            {/* ===============================
+                EXPLAINERS
+            ================================ */}
+
             <Link
               href="/explainers"
-              className={navItem}
+              className={`${navItem} ${
+                isActive("/explainers")
+                  ? "after:absolute after:-bottom-[31px] after:left-0 after:right-0 after:h-[2px] after:bg-[#2563EB]"
+                  : ""
+              }`}
             >
-              Explainers
+              <span className="font-bold">
+                Explainers
+              </span>
             </Link>
 
-            {/* Compare */}
+            {/* ===============================
+                COMPARE
+            ================================ */}
+
             <Link
               href="/compare"
-              className={navItem}
+              className={`${navItem} ${
+                isActive("/compare")
+                  ? "after:absolute after:-bottom-[31px] after:left-0 after:right-0 after:h-[2px] after:bg-[#2563EB]"
+                  : ""
+              }`}
             >
-              Compare
+              <span className="font-bold">
+                Compare
+              </span>
             </Link>
 
-            {/* =========================
-                MORE DROPDOWN
-            ========================== */}
+            {/* ===============================
+                MORE
+            ================================ */}
+
             <div className="relative">
               <button
                 type="button"
@@ -117,37 +198,30 @@ export default function Navbar() {
                     (current) => !current
                   )
                 }
-                className="inline-flex appearance-none items-center gap-1 border-0 bg-transparent p-0 text-[#111827] transition hover:text-[#2563EB]"
-                style={{
-                  fontFamily:
-                    "Arial, Helvetica, sans-serif",
-                  fontSize: "16px",
-                  fontWeight: 700,
-                  lineHeight: "1",
-                }}
+                className={`${navItem} appearance-none gap-1 border-0 bg-transparent p-0 ${
+                  isMoreActive()
+                    ? "after:absolute after:-bottom-[31px] after:left-0 after:right-0 after:h-[2px] after:bg-[#2563EB]"
+                    : ""
+                }`}
               >
-                <span
-                  style={{
-                    fontFamily:
-                      "Arial, Helvetica, sans-serif",
-                    fontSize: "16px",
-                    fontWeight: 700,
-                    lineHeight: "1",
-                  }}
-                >
+                <span className="font-bold">
                   More
                 </span>
 
                 <ChevronDown
                   size={16}
                   strokeWidth={2.5}
-                  className={`transition-transform ${
+                  className={`shrink-0 transition-transform ${
                     moreOpen
                       ? "rotate-180"
                       : ""
                   }`}
                 />
               </button>
+
+              {/* =============================
+                  MORE DROPDOWN
+              ============================== */}
 
               {moreOpen && (
                 <div
@@ -185,9 +259,10 @@ export default function Navbar() {
             </div>
           </nav>
 
-          {/* =========================
+          {/* =================================
               DESKTOP AUTHENTICATION
-          ========================== */}
+          ================================== */}
+
           <div className="hidden lg:block">
             <Show when="signed-out">
               <button
@@ -204,9 +279,10 @@ export default function Navbar() {
             </Show>
           </div>
 
-          {/* =========================
+          {/* =================================
               MOBILE MENU BUTTON
-          ========================== */}
+          ================================== */}
+
           <button
             type="button"
             aria-label={
@@ -232,9 +308,10 @@ export default function Navbar() {
           </button>
         </div>
 
-        {/* =========================
+        {/* =================================
             MOBILE NAVIGATION
-        ========================== */}
+        ================================== */}
+
         {mobileOpen && (
           <div className="border-t border-[#111827]/10 bg-[#FFFFFF] lg:hidden">
             <nav
@@ -244,40 +321,49 @@ export default function Navbar() {
               <div className="flex flex-col">
 
                 {/* Schemes */}
+
                 <MobileLink
                   href="/schemes"
                   onClick={closeMenus}
+                  active={isActive("/schemes")}
                 >
                   Schemes
                 </MobileLink>
 
                 {/* Eligibility */}
+
                 <MobileLink
                   href="/eligibility"
                   onClick={closeMenus}
+                  active={isActive("/eligibility")}
                 >
                   Eligibility
                 </MobileLink>
 
                 {/* Explainers */}
+
                 <MobileLink
                   href="/explainers"
                   onClick={closeMenus}
+                  active={isActive("/explainers")}
                 >
                   Explainers
                 </MobileLink>
 
                 {/* Compare */}
+
                 <MobileLink
                   href="/compare"
                   onClick={closeMenus}
+                  active={isActive("/compare")}
                 >
                   Compare
                 </MobileLink>
 
-                {/* =========================
+                {/* =================================
                     MOBILE MORE
-                ========================== */}
+                ================================== */}
+
                 <div className="mt-1">
                   <button
                     type="button"
@@ -288,9 +374,15 @@ export default function Navbar() {
                       )
                     }
                     aria-expanded={moreOpen}
-                    className="flex w-full items-center justify-between rounded-xl px-4 py-3 text-left text-[16px] font-bold leading-none text-[#111827] transition hover:bg-[#2563EB]/10 hover:text-[#2563EB]"
+                    className={`flex w-full items-center justify-between rounded-xl px-4 py-3 text-left text-[16px] font-bold leading-none transition ${
+                      isMoreActive()
+                        ? "bg-[#2563EB]/10 text-[#2563EB]"
+                        : "text-[#111827] hover:bg-[#2563EB]/10 hover:text-[#2563EB]"
+                    }`}
                   >
-                    <span>More</span>
+                    <span className="font-bold">
+                      More
+                    </span>
 
                     <ChevronDown
                       size={18}
@@ -303,11 +395,15 @@ export default function Navbar() {
                     />
                   </button>
 
+                  {/* Mobile More Links */}
+
                   {moreOpen && (
                     <div className="ml-4 border-l-2 border-[#2563EB]/20 pl-3">
+
                       <MobileSubLink
                         href="/saved"
                         onClick={closeMenus}
+                        active={isActive("/saved")}
                       >
                         Saved Schemes
                       </MobileSubLink>
@@ -315,6 +411,7 @@ export default function Navbar() {
                       <MobileSubLink
                         href="/about"
                         onClick={closeMenus}
+                        active={isActive("/about")}
                       >
                         About
                       </MobileSubLink>
@@ -322,16 +419,19 @@ export default function Navbar() {
                       <MobileSubLink
                         href="/contact"
                         onClick={closeMenus}
+                        active={isActive("/contact")}
                       >
                         Contact
                       </MobileSubLink>
+
                     </div>
                   )}
                 </div>
 
-                {/* =========================
+                {/* =================================
                     MOBILE AUTHENTICATION
-                ========================== */}
+                ================================== */}
+
                 <div className="mt-4 border-t border-[#111827]/10 pt-4">
                   <Show when="signed-out">
                     <button
@@ -355,12 +455,15 @@ export default function Navbar() {
         )}
       </header>
 
-      {/* =========================
+      {/* =================================
           AUTHENTICATION MODAL
-      ========================== */}
+      ================================== */}
+
       <AuthModal
         open={authOpen}
-        onClose={() => setAuthOpen(false)}
+        onClose={() =>
+          setAuthOpen(false)
+        }
         initialMode="sign-in"
       />
     </>
@@ -368,23 +471,29 @@ export default function Navbar() {
 }
 
 /* =====================================
-   MOBILE PRIMARY NAVIGATION LINK
+   MOBILE PRIMARY LINK
 ===================================== */
 
 function MobileLink({
   href,
   onClick,
+  active,
   children,
 }: {
   href: string;
   onClick: () => void;
+  active: boolean;
   children: React.ReactNode;
 }) {
   return (
     <Link
       href={href}
       onClick={onClick}
-      className="rounded-xl px-4 py-3 text-[16px] font-bold leading-none text-[#111827] transition hover:bg-[#2563EB]/10 hover:text-[#2563EB]"
+      className={`rounded-xl px-4 py-3 text-[16px] font-bold leading-none transition ${
+        active
+          ? "bg-[#2563EB]/10 text-[#2563EB]"
+          : "text-[#111827] hover:bg-[#2563EB]/10 hover:text-[#2563EB]"
+      }`}
     >
       {children}
     </Link>
@@ -392,23 +501,29 @@ function MobileLink({
 }
 
 /* =====================================
-   MOBILE SUB NAVIGATION LINK
+   MOBILE SUB LINK
 ===================================== */
 
 function MobileSubLink({
   href,
   onClick,
+  active,
   children,
 }: {
   href: string;
   onClick: () => void;
+  active: boolean;
   children: React.ReactNode;
 }) {
   return (
     <Link
       href={href}
       onClick={onClick}
-      className="block rounded-lg px-4 py-2.5 text-[15px] font-semibold leading-none text-[#111827] transition hover:bg-[#2563EB]/10 hover:text-[#2563EB]"
+      className={`block rounded-lg px-4 py-2.5 text-[15px] font-semibold leading-none transition ${
+        active
+          ? "bg-[#2563EB]/10 text-[#2563EB]"
+          : "text-[#111827] hover:bg-[#2563EB]/10 hover:text-[#2563EB]"
+      }`}
     >
       {children}
     </Link>
