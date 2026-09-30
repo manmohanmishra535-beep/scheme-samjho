@@ -1,166 +1,171 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import {
+  ArrowLeft,
   ArrowRight,
   CheckCircle2,
-  ChevronDown,
   ExternalLink,
   FileText,
   Info,
   ShieldCheck,
 } from "lucide-react";
 
-import { schemes, type Scheme } from "../../../data/schemes";
+import {
+  getAllSchemes,
+  getSchemeBySlug,
+} from "../../../lib/schemes";
+
 import FavoriteButton from "../../../Components/FavoriteButton";
 
-type ExplainerPageProps = {
+type SchemeDetailPageProps = {
   params: Promise<{
     slug: string;
   }>;
 };
 
-type Faq = {
-  question: string;
-  answer: string;
-};
+export const dynamic = "force-dynamic";
 
-export function generateStaticParams() {
-  return schemes.map((scheme) => ({
-    slug: scheme.slug,
-  }));
-}
+/* =========================================================
+   METADATA
+========================================================= */
 
 export async function generateMetadata({
   params,
-}: ExplainerPageProps) {
+}: SchemeDetailPageProps) {
   const { slug } = await params;
 
-  const scheme = schemes.find(
-    (item) => item.slug === slug
-  );
+  const scheme =
+    await getSchemeBySlug(slug);
 
   if (!scheme) {
     return {
-      title: "Explainer Not Found",
+      title:
+        "Scheme Not Found | SchemeSamjho",
+      description:
+        "The requested government scheme could not be found.",
     };
   }
 
   return {
-    title: `${scheme.name} Explained Simply`,
-    description: `Understand ${scheme.name}, including its benefits, eligibility, documents and application information in simple language.`,
+    title: `${scheme.name} — Eligibility, Benefits & Documents`,
+    description:
+      scheme.shortDescription,
   };
 }
 
-export default async function ExplainerDetailPage({
+/* =========================================================
+   PAGE
+========================================================= */
+
+export default async function SchemeDetailPage({
   params,
-}: ExplainerPageProps) {
+}: SchemeDetailPageProps) {
   const { slug } = await params;
 
-  const scheme = schemes.find(
-    (item) => item.slug === slug
-  );
+  /*
+   * IMPORTANT:
+   * This comes from Supabase through getSchemeBySlug().
+   *
+   * Only published schemes are returned by the loader.
+   */
+  const scheme =
+    await getSchemeBySlug(slug);
 
   if (!scheme) {
     notFound();
   }
 
-  const relatedSchemes = schemes
-    .filter(
-      (item) =>
-        item.slug !== scheme.slug &&
-        item.category === scheme.category
-    )
-    .slice(0, 3);
+  /*
+   * Load published schemes for related schemes.
+   */
+  const allSchemes =
+    await getAllSchemes();
 
-  const faqs = getFaqs(scheme);
+  const relatedSchemes =
+    allSchemes
+      .filter(
+        (item) =>
+          item.slug !== scheme.slug &&
+          item.category === scheme.category
+      )
+      .slice(0, 3);
 
   return (
-    <main className="min-h-screen bg-[#FFFFFF]">
-      {/* ===================================================
+    <main className="min-h-screen bg-[#FFFFFF] text-[#111827]">
+      {/* =====================================================
           HERO
-          =================================================== */}
+      ===================================================== */}
 
       <section className="bg-[#111827]">
-        <div className="mx-auto max-w-7xl px-6 py-12 sm:px-8 sm:py-16 lg:px-10 lg:py-20">
+        <div className="mx-auto max-w-7xl px-6 py-10 sm:px-8 sm:py-14 lg:px-10 lg:py-16">
           {/* Breadcrumb */}
-
-          <div className="flex flex-wrap items-center gap-2 text-sm text-[#FFFFFF]/60">
+          <div className="flex flex-wrap items-center gap-2 text-sm text-white/60">
             <Link
-              href="/explainers"
-              className="transition hover:text-[#FFFFFF]"
+              href="/schemes"
+              className="transition hover:text-white"
             >
-              Explainers
+              Schemes
             </Link>
 
             <span>/</span>
 
-            <span className="text-[#FFFFFF]/85">
+            <span className="text-white/85">
               {scheme.name}
             </span>
           </div>
 
           {/* Category */}
-
-          <div className="mt-8">
-            <span className="inline-flex items-center rounded-full border border-[#FFFFFF]/20 px-4 py-2 text-sm font-bold text-[#FFFFFF]">
+          <div className="mt-7">
+            <span className="inline-flex rounded-full border border-white/20 px-4 py-2 text-sm font-bold text-white">
               {scheme.category}
             </span>
           </div>
 
           {/* Title */}
-
-          <h1 className="mt-6 max-w-4xl text-4xl font-extrabold leading-[1.06] tracking-tight text-[#FFFFFF] sm:text-5xl lg:text-6xl">
+          <h1 className="mt-5 max-w-5xl text-4xl font-black leading-[1.05] tracking-tight text-white sm:text-5xl lg:text-6xl">
             {scheme.name}
-            <br />
-            <span className="text-[#2563EB]">
-              explained simply.
-            </span>
           </h1>
 
           {/* Description */}
-
-          <p className="mt-6 max-w-3xl text-base leading-7 text-[#FFFFFF]/75 sm:text-lg">
+          <p className="mt-6 max-w-3xl text-base leading-7 text-white/70 sm:text-lg">
             {scheme.shortDescription}
           </p>
 
           {/* Actions */}
-
           <div className="mt-8 flex flex-col gap-3 sm:flex-row">
             <FavoriteButton
               slug={scheme.slug}
             />
 
-            <Link
-              href={`/schemes/${scheme.slug}`}
-              className="inline-flex items-center justify-center gap-2 rounded-xl border border-[#FFFFFF]/25 px-5 py-3 text-sm font-bold text-[#FFFFFF] transition hover:border-[#FFFFFF] hover:bg-[#FFFFFF] hover:text-[#111827]"
+            <a
+              href={scheme.officialUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#2563EB] px-5 py-3 text-sm font-bold text-white transition hover:bg-white hover:text-[#111827]"
             >
-              View full scheme details
-              <ArrowRight size={17} />
-            </Link>
+              Official source
+              <ExternalLink className="h-4 w-4" />
+            </a>
           </div>
         </div>
       </section>
 
-      {/* ===================================================
+      {/* =====================================================
           MAIN CONTENT
-          =================================================== */}
+      ===================================================== */}
 
       <section>
-        <div className="mx-auto grid max-w-7xl gap-10 px-6 py-12 sm:px-8 sm:py-16 lg:grid-cols-[1fr_320px] lg:px-10">
+        <div className="mx-auto grid max-w-7xl gap-10 px-6 py-10 sm:px-8 sm:py-14 lg:grid-cols-[1fr_320px] lg:px-10">
           {/* =================================================
               ARTICLE
-              ================================================= */}
+          ================================================= */}
 
           <article className="min-w-0">
             {/* Intro */}
-
-            <div className="rounded-2xl border border-[#111827]/10 bg-[#FFFFFF] p-6 sm:p-8">
+            <div className="rounded-2xl border border-[#111827]/10 bg-white p-6 sm:p-8">
               <div className="flex items-start gap-4">
                 <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-[#2563EB]/10">
-                  <Info
-                    size={21}
-                    className="text-[#2563EB]"
-                  />
+                  <Info className="h-5 w-5 text-[#2563EB]" />
                 </div>
 
                 <div>
@@ -175,35 +180,38 @@ export default async function ExplainerDetailPage({
               </div>
             </div>
 
-            {/* What is it? */}
+            {/* =================================================
+                ABOUT
+            ================================================= */}
 
             <section className="mt-10">
               <SectionHeading>
-                What is {scheme.name}?
+                About {scheme.name}
               </SectionHeading>
 
-              <p className="mt-4 text-base leading-8 text-[#111827]/70">
-                {scheme.description}
-              </p>
+              <div className="mt-4 space-y-4">
+                {scheme.description
+                  .split("\n")
+                  .filter(Boolean)
+                  .map(
+                    (
+                      paragraph,
+                      index
+                    ) => (
+                      <p
+                        key={`${scheme.slug}-description-${index}`}
+                        className="text-base leading-8 text-[#111827]/70"
+                      >
+                        {paragraph}
+                      </p>
+                    )
+                  )}
+              </div>
             </section>
 
-            {/* Why */}
-
-            <section className="mt-10">
-              <SectionHeading>
-                Why does this scheme exist?
-              </SectionHeading>
-
-              <p className="mt-4 text-base leading-8 text-[#111827]/70">
-                The scheme is designed to provide
-                support to people who fall within its
-                defined beneficiary group. The exact
-                purpose, benefits and conditions depend
-                on the official scheme guidelines.
-              </p>
-            </section>
-
-            {/* Who is it for? */}
+            {/* =================================================
+                WHO IS IT FOR?
+            ================================================= */}
 
             <section className="mt-10">
               <SectionHeading>
@@ -214,7 +222,8 @@ export default async function ExplainerDetailPage({
                 {scheme.eligibilitySummary}
               </p>
 
-              {scheme.occupations.length > 0 && (
+              {scheme.occupations.length >
+                0 && (
                 <div className="mt-6">
                   <p className="text-sm font-bold text-[#111827]">
                     Relevant occupations or
@@ -223,9 +232,12 @@ export default async function ExplainerDetailPage({
 
                   <div className="mt-3 flex flex-wrap gap-2">
                     {scheme.occupations.map(
-                      (occupation) => (
+                      (
+                        occupation,
+                        index
+                      ) => (
                         <span
-                          key={occupation}
+                          key={`${occupation}-${index}`}
                           className="rounded-lg border border-[#111827]/10 px-3 py-2 text-sm font-semibold text-[#111827]"
                         >
                           {occupation}
@@ -237,42 +249,54 @@ export default async function ExplainerDetailPage({
               )}
             </section>
 
-            {/* Benefits */}
+            {/* =================================================
+                BENEFITS
+            ================================================= */}
 
             <section
               id="benefits"
-              className="mt-10 scroll-mt-28"
+              className="mt-10 scroll-mt-24"
             >
               <SectionHeading>
-                What are the benefits?
+                Benefits
               </SectionHeading>
 
-              <div className="mt-5 space-y-3">
-                {scheme.benefits.map(
-                  (benefit) => (
-                    <div
-                      key={benefit}
-                      className="flex items-start gap-3 rounded-xl border border-[#111827]/10 p-4"
-                    >
-                      <CheckCircle2
-                        size={20}
-                        className="mt-0.5 shrink-0 text-[#16A34A]"
-                      />
+              {scheme.benefits.length >
+              0 ? (
+                <div className="mt-5 space-y-3">
+                  {scheme.benefits.map(
+                    (
+                      benefit,
+                      index
+                    ) => (
+                      <div
+                        key={`${benefit}-${index}`}
+                        className="flex items-start gap-3 rounded-xl border border-[#111827]/10 p-4"
+                      >
+                        <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0 text-[#16A34A]" />
 
-                      <p className="text-sm leading-6 text-[#111827]/70">
-                        {benefit}
-                      </p>
-                    </div>
-                  )
-                )}
-              </div>
+                        <p className="text-sm leading-6 text-[#111827]/70">
+                          {benefit}
+                        </p>
+                      </div>
+                    )
+                  )}
+                </div>
+              ) : (
+                <p className="mt-4 text-sm text-[#111827]/60">
+                  Benefit information is not
+                  currently available.
+                </p>
+              )}
             </section>
 
-            {/* Eligibility */}
+            {/* =================================================
+                ELIGIBILITY
+            ================================================= */}
 
             <section
               id="eligibility"
-              className="mt-10 scroll-mt-28"
+              className="mt-10 scroll-mt-24"
             >
               <SectionHeading>
                 Eligibility
@@ -287,25 +311,28 @@ export default async function ExplainerDetailPage({
                   <InfoCard
                     label="Minimum age"
                     value={
-                      scheme.minAge != null
+                      scheme.minAge !=
+                      null
                         ? `${scheme.minAge} years`
-                        : "No specific age shown"
+                        : "Not specified"
                     }
                   />
 
                   <InfoCard
                     label="Maximum age"
                     value={
-                      scheme.maxAge != null
+                      scheme.maxAge !=
+                      null
                         ? `${scheme.maxAge} years`
-                        : "No specific age shown"
+                        : "Not specified"
                     }
                   />
 
                   <InfoCard
                     label="Income limit"
                     value={
-                      scheme.maxIncome != null
+                      scheme.maxIncome !=
+                      null
                         ? `₹${scheme.maxIncome.toLocaleString(
                             "en-IN"
                           )}`
@@ -315,15 +342,20 @@ export default async function ExplainerDetailPage({
 
                   <InfoCard
                     label="Category"
-                    value={scheme.category}
+                    value={
+                      scheme.category
+                    }
                   />
                 </div>
               </div>
             </section>
 
-            {/* Exclusions */}
+            {/* =================================================
+                EXCLUSIONS
+            ================================================= */}
 
-            {scheme.exclusions.length > 0 && (
+            {scheme.exclusions.length >
+              0 && (
               <section className="mt-10">
                 <SectionHeading>
                   Who may not qualify?
@@ -331,9 +363,12 @@ export default async function ExplainerDetailPage({
 
                 <div className="mt-5 space-y-3">
                   {scheme.exclusions.map(
-                    (exclusion) => (
+                    (
+                      exclusion,
+                      index
+                    ) => (
                       <div
-                        key={exclusion}
+                        key={`${exclusion}-${index}`}
                         className="rounded-xl border border-[#111827]/10 bg-[#111827]/5 p-4"
                       >
                         <p className="text-sm leading-6 text-[#111827]/70">
@@ -346,179 +381,148 @@ export default async function ExplainerDetailPage({
               </section>
             )}
 
-            {/* Documents */}
+            {/* =================================================
+                DOCUMENTS
+            ================================================= */}
 
             <section
               id="documents"
-              className="mt-10 scroll-mt-28"
+              className="mt-10 scroll-mt-24"
             >
               <SectionHeading>
                 Documents you may need
               </SectionHeading>
 
-              <div className="mt-5 grid gap-3 sm:grid-cols-2">
-                {scheme.documents.map(
-                  (document) => (
-                    <div
-                      key={document}
-                      className="flex items-start gap-3 rounded-xl border border-[#111827]/10 p-4"
-                    >
-                      <FileText
-                        size={19}
-                        className="mt-0.5 shrink-0 text-[#2563EB]"
-                      />
+              {scheme.documents.length >
+              0 ? (
+                <div className="mt-5 grid gap-3 sm:grid-cols-2">
+                  {scheme.documents.map(
+                    (
+                      document,
+                      index
+                    ) => (
+                      <div
+                        key={`${document}-${index}`}
+                        className="flex items-start gap-3 rounded-xl border border-[#111827]/10 p-4"
+                      >
+                        <FileText className="mt-0.5 h-5 w-5 shrink-0 text-[#2563EB]" />
 
-                      <span className="text-sm leading-6 text-[#111827]/70">
-                        {document}
-                      </span>
-                    </div>
-                  )
-                )}
-              </div>
+                        <span className="text-sm leading-6 text-[#111827]/70">
+                          {document}
+                        </span>
+                      </div>
+                    )
+                  )}
+                </div>
+              ) : (
+                <p className="mt-4 text-sm leading-6 text-[#111827]/60">
+                  Check the official government
+                  source for the current document
+                  requirements.
+                </p>
+              )}
             </section>
 
-            {/* How it works */}
+            {/* =================================================
+                HOW TO APPLY
+            ================================================= */}
 
             <section
-              id="how-it-works"
-              className="mt-10 scroll-mt-28"
+              id="how-to-apply"
+              className="mt-10 scroll-mt-24"
             >
-              <SectionHeading>
-                How does it work?
-              </SectionHeading>
-
-              <div className="mt-6 space-y-5">
-                <Step
-                  number="01"
-                  title="Check the eligibility"
-                  description="Review the official eligibility conditions and compare them with your situation."
-                />
-
-                <Step
-                  number="02"
-                  title="Prepare the documents"
-                  description="Keep the identity, bank, income, land, occupation or other documents required by the scheme ready."
-                />
-
-                <Step
-                  number="03"
-                  title="Apply through the official process"
-                  description="Use the official government portal, department, centre or other authorised channel specified for the scheme."
-                />
-
-                <Step
-                  number="04"
-                  title="Complete verification"
-                  description="The concerned authority may verify your information before approving the benefit."
-                />
-
-                <Step
-                  number="05"
-                  title="Receive the benefit"
-                  description="If approved, the applicable benefit is provided according to the official scheme rules."
-                />
-              </div>
-            </section>
-
-            {/* How to apply */}
-
-            <section className="mt-10">
               <SectionHeading>
                 How to apply
               </SectionHeading>
 
               <div className="mt-5 rounded-2xl bg-[#111827] p-6 sm:p-8">
-                <p className="text-sm leading-7 text-[#FFFFFF]/70">
-                  Application procedures can change
-                  depending on the scheme and
-                  government department. Always use
-                  the official source below for the
-                  current application process.
+                <p className="text-sm leading-7 text-white/70">
+                  Application procedures may vary
+                  depending on the scheme and the
+                  responsible government department.
+                  Always check the official source for
+                  the current process.
                 </p>
 
                 <a
                   href={scheme.officialUrl}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="mt-6 inline-flex items-center justify-center gap-2 rounded-xl bg-[#2563EB] px-5 py-3 text-sm font-bold text-[#FFFFFF] transition hover:bg-[#FFFFFF] hover:text-[#111827]"
+                  className="mt-6 inline-flex items-center justify-center gap-2 rounded-xl bg-[#2563EB] px-5 py-3 text-sm font-bold text-white transition hover:bg-white hover:text-[#111827]"
                 >
                   Visit official source
-                  <ExternalLink size={17} />
+                  <ExternalLink className="h-4 w-4" />
                 </a>
               </div>
             </section>
 
-            {/* FAQs */}
+            {/* =================================================
+                LAST VERIFIED
+            ================================================= */}
 
-            <section
-              id="faqs"
-              className="mt-10 scroll-mt-28"
-            >
-              <SectionHeading>
-                Frequently asked questions
-              </SectionHeading>
+            <section className="mt-10">
+              <div className="rounded-2xl border border-[#111827]/10 bg-white p-6">
+                <div className="flex items-start gap-3">
+                  <ShieldCheck className="mt-0.5 h-5 w-5 shrink-0 text-[#16A34A]" />
 
-              <div className="mt-5 space-y-3">
-                {faqs.map((faq) => (
-                  <details
-                    key={faq.question}
-                    className="group rounded-xl border border-[#111827]/10"
-                  >
-                    <summary className="flex cursor-pointer list-none items-center justify-between gap-4 px-5 py-4 text-sm font-bold text-[#111827]">
-                      <span>{faq.question}</span>
+                  <div>
+                    <p className="text-sm font-bold text-[#111827]">
+                      Information verification
+                    </p>
 
-                      <ChevronDown
-                        size={18}
-                        className="shrink-0 transition-transform group-open:rotate-180"
-                      />
-                    </summary>
-
-                    <div className="border-t border-[#111827]/10 px-5 py-4">
-                      <p className="text-sm leading-6 text-[#111827]/65">
-                        {faq.answer}
-                      </p>
-                    </div>
-                  </details>
-                ))}
+                    <p className="mt-2 text-sm leading-6 text-[#111827]/60">
+                      Last verified:{" "}
+                      <span className="font-bold text-[#111827]">
+                        {
+                          scheme.lastVerified
+                        }
+                      </span>
+                    </p>
+                  </div>
+                </div>
               </div>
             </section>
 
-            {/* Disclaimer */}
+            {/* =================================================
+                DISCLAIMER
+            ================================================= */}
 
-            <div className="mt-10 rounded-2xl border border-[#111827]/10 bg-[#111827]/5 p-6">
-              <div className="flex items-start gap-3">
-                <ShieldCheck
-                  size={21}
-                  className="mt-0.5 shrink-0 text-[#16A34A]"
-                />
+            <section className="mt-10">
+              <div className="rounded-2xl border border-[#111827]/10 bg-[#111827]/5 p-6">
+                <div className="flex items-start gap-3">
+                  <ShieldCheck className="mt-0.5 h-5 w-5 shrink-0 text-[#16A34A]" />
 
-                <div>
-                  <h2 className="text-sm font-extrabold text-[#111827]">
-                    Important
-                  </h2>
+                  <div>
+                    <h2 className="text-sm font-extrabold text-[#111827]">
+                      Important
+                    </h2>
 
-                  <p className="mt-2 text-sm leading-6 text-[#111827]/65">
-                    SchemeSamjho is an informational
-                    platform. Eligibility results and
-                    explanations are preliminary and
-                    should not be treated as official
-                    government decisions. Always verify
-                    current eligibility, benefits,
-                    documents and application procedures
-                    through the official government
-                    source.
-                  </p>
+                    <p className="mt-2 text-sm leading-6 text-[#111827]/65">
+                      SchemeSamjho is an
+                      informational platform.
+                      The information on this
+                      page is intended to help
+                      users understand a scheme
+                      and should not be treated as
+                      an official government
+                      decision. Always verify
+                      current eligibility, benefits,
+                      documents and application
+                      procedures through the official
+                      government source.
+                    </p>
+                  </div>
                 </div>
               </div>
-            </div>
+            </section>
           </article>
 
           {/* =================================================
               SIDEBAR
-              ================================================= */}
+          ================================================= */}
 
-          <aside className="lg:sticky lg:top-28 lg:self-start">
-            <div className="rounded-2xl border border-[#111827]/10 bg-[#FFFFFF] p-6">
+          <aside className="lg:sticky lg:top-24 lg:self-start">
+            <div className="rounded-2xl border border-[#111827]/10 bg-white p-6">
               <p className="text-xs font-bold uppercase tracking-wide text-[#2563EB]">
                 Quick information
               </p>
@@ -530,13 +534,16 @@ export default async function ExplainerDetailPage({
               <div className="mt-6 space-y-4">
                 <SidebarItem
                   label="Category"
-                  value={scheme.category}
+                  value={
+                    scheme.category
+                  }
                 />
 
                 <SidebarItem
                   label="Minimum age"
                   value={
-                    scheme.minAge != null
+                    scheme.minAge !=
+                    null
                       ? `${scheme.minAge} years`
                       : "Not specified"
                   }
@@ -545,7 +552,8 @@ export default async function ExplainerDetailPage({
                 <SidebarItem
                   label="Maximum age"
                   value={
-                    scheme.maxAge != null
+                    scheme.maxAge !=
+                    null
                       ? `${scheme.maxAge} years`
                       : "Not specified"
                   }
@@ -554,7 +562,8 @@ export default async function ExplainerDetailPage({
                 <SidebarItem
                   label="Income"
                   value={
-                    scheme.maxIncome != null
+                    scheme.maxIncome !=
+                    null
                       ? `₹${scheme.maxIncome.toLocaleString(
                           "en-IN"
                         )}`
@@ -564,7 +573,9 @@ export default async function ExplainerDetailPage({
 
                 <SidebarItem
                   label="Last verified"
-                  value={scheme.lastVerified}
+                  value={
+                    scheme.lastVerified
+                  }
                 />
               </div>
 
@@ -572,15 +583,14 @@ export default async function ExplainerDetailPage({
                 href={scheme.officialUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="mt-6 flex w-full items-center justify-center gap-2 rounded-xl bg-[#2563EB] px-5 py-3 text-sm font-bold text-[#FFFFFF] transition hover:bg-[#111827]"
+                className="mt-6 flex w-full items-center justify-center gap-2 rounded-xl bg-[#2563EB] px-5 py-3 text-sm font-bold text-white transition hover:bg-[#111827]"
               >
                 Official source
-                <ExternalLink size={16} />
+                <ExternalLink className="h-4 w-4" />
               </a>
             </div>
 
             {/* Page navigation */}
-
             <div className="mt-5 rounded-2xl border border-[#111827]/10 p-6">
               <p className="text-xs font-bold uppercase tracking-wide text-[#111827]/45">
                 On this page
@@ -589,37 +599,30 @@ export default async function ExplainerDetailPage({
               <div className="mt-4 space-y-2 text-sm">
                 <a
                   href="#benefits"
-                  className="block py-1 font-semibold text-[#111827]/65 hover:text-[#2563EB]"
+                  className="block py-1 font-semibold text-[#111827]/65 transition hover:text-[#2563EB]"
                 >
                   Benefits
                 </a>
 
                 <a
                   href="#eligibility"
-                  className="block py-1 font-semibold text-[#111827]/65 hover:text-[#2563EB]"
+                  className="block py-1 font-semibold text-[#111827]/65 transition hover:text-[#2563EB]"
                 >
                   Eligibility
                 </a>
 
                 <a
                   href="#documents"
-                  className="block py-1 font-semibold text-[#111827]/65 hover:text-[#2563EB]"
+                  className="block py-1 font-semibold text-[#111827]/65 transition hover:text-[#2563EB]"
                 >
                   Documents
                 </a>
 
                 <a
-                  href="#how-it-works"
-                  className="block py-1 font-semibold text-[#111827]/65 hover:text-[#2563EB]"
+                  href="#how-to-apply"
+                  className="block py-1 font-semibold text-[#111827]/65 transition hover:text-[#2563EB]"
                 >
-                  How it works
-                </a>
-
-                <a
-                  href="#faqs"
-                  className="block py-1 font-semibold text-[#111827]/65 hover:text-[#2563EB]"
-                >
-                  FAQs
+                  How to apply
                 </a>
               </div>
             </div>
@@ -627,13 +630,14 @@ export default async function ExplainerDetailPage({
         </div>
       </section>
 
-      {/* ===================================================
+      {/* =====================================================
           RELATED SCHEMES
-          =================================================== */}
+      ===================================================== */}
 
-      {relatedSchemes.length > 0 && (
+      {relatedSchemes.length >
+        0 && (
         <section className="border-t border-[#111827]/10 bg-[#111827]/5">
-          <div className="mx-auto max-w-7xl px-6 py-12 sm:px-8 sm:py-16 lg:px-10">
+          <div className="mx-auto max-w-7xl px-6 py-12 sm:px-8 lg:px-10">
             <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
               <div>
                 <p className="text-sm font-bold text-[#2563EB]">
@@ -647,10 +651,10 @@ export default async function ExplainerDetailPage({
 
               <Link
                 href="/schemes"
-                className="inline-flex items-center gap-2 text-sm font-bold text-[#2563EB] hover:text-[#111827]"
+                className="inline-flex items-center gap-2 text-sm font-bold text-[#2563EB] transition hover:text-[#111827]"
               >
                 Browse all schemes
-                <ArrowRight size={17} />
+                <ArrowRight className="h-4 w-4" />
               </Link>
             </div>
 
@@ -658,25 +662,33 @@ export default async function ExplainerDetailPage({
               {relatedSchemes.map(
                 (relatedScheme) => (
                   <Link
-                    key={relatedScheme.slug}
-                    href={`/explainers/${relatedScheme.slug}`}
-                    className="group rounded-2xl border border-[#111827]/10 bg-[#FFFFFF] p-6 transition hover:-translate-y-1 hover:border-[#2563EB]/30"
+                    key={
+                      relatedScheme.slug
+                    }
+                    href={`/schemes/${relatedScheme.slug}`}
+                    className="group rounded-2xl border border-[#111827]/10 bg-white p-6 transition hover:-translate-y-1 hover:border-[#2563EB]/30"
                   >
                     <p className="text-xs font-bold uppercase tracking-wide text-[#16A34A]">
-                      {relatedScheme.category}
+                      {
+                        relatedScheme.category
+                      }
                     </p>
 
                     <h3 className="mt-2 text-xl font-extrabold text-[#111827]">
-                      {relatedScheme.name}
+                      {
+                        relatedScheme.name
+                      }
                     </h3>
 
                     <p className="mt-3 text-sm leading-6 text-[#111827]/60">
-                      {relatedScheme.shortDescription}
+                      {
+                        relatedScheme.shortDescription
+                      }
                     </p>
 
-                    <span className="mt-5 inline-flex items-center gap-2 text-sm font-bold text-[#2563EB] group-hover:text-[#111827]">
-                      Read explainer
-                      <ArrowRight size={16} />
+                    <span className="mt-5 inline-flex items-center gap-2 text-sm font-bold text-[#2563EB] transition group-hover:text-[#111827]">
+                      View scheme
+                      <ArrowRight className="h-4 w-4" />
                     </span>
                   </Link>
                 )
@@ -686,32 +698,31 @@ export default async function ExplainerDetailPage({
         </section>
       )}
 
-      {/* ===================================================
+      {/* =====================================================
           BOTTOM CTA
-          =================================================== */}
+      ===================================================== */}
 
-      <section className="bg-[#FFFFFF]">
+      <section className="bg-white">
         <div className="mx-auto max-w-7xl px-6 py-12 sm:px-8 lg:px-10">
           <div className="flex flex-col gap-5 rounded-2xl bg-[#111827] p-6 sm:p-8 lg:flex-row lg:items-center lg:justify-between">
             <div>
-              <p className="text-xl font-extrabold text-[#FFFFFF]">
-                Want to check whether this scheme
-                may fit you?
+              <p className="text-xl font-extrabold text-white">
+                Want to explore your eligibility?
               </p>
 
-              <p className="mt-2 text-sm leading-6 text-[#FFFFFF]/65">
-                Use the SchemeSamjho preliminary
-                eligibility checker to explore
-                relevant schemes.
+              <p className="mt-2 text-sm leading-6 text-white/65">
+                Use the preliminary eligibility
+                checker to find schemes that may
+                be relevant to you.
               </p>
             </div>
 
             <Link
               href="/eligibility"
-              className="inline-flex shrink-0 items-center justify-center gap-2 rounded-xl bg-[#2563EB] px-5 py-3 text-sm font-bold text-[#FFFFFF] transition hover:bg-[#FFFFFF] hover:text-[#111827]"
+              className="inline-flex shrink-0 items-center justify-center gap-2 rounded-xl bg-[#2563EB] px-5 py-3 text-sm font-bold text-white transition hover:bg-white hover:text-[#111827]"
             >
               Check eligibility
-              <ArrowRight size={17} />
+              <ArrowRight className="h-4 w-4" />
             </Link>
           </div>
         </div>
@@ -721,8 +732,8 @@ export default async function ExplainerDetailPage({
 }
 
 /* =========================================================
-   COMPONENTS
-   ========================================================= */
+   SECTION HEADING
+========================================================= */
 
 function SectionHeading({
   children,
@@ -735,6 +746,10 @@ function SectionHeading({
     </h2>
   );
 }
+
+/* =========================================================
+   INFO CARD
+========================================================= */
 
 function InfoCard({
   label,
@@ -756,6 +771,10 @@ function InfoCard({
   );
 }
 
+/* =========================================================
+   SIDEBAR ITEM
+========================================================= */
+
 function SidebarItem({
   label,
   value,
@@ -774,69 +793,4 @@ function SidebarItem({
       </span>
     </div>
   );
-}
-
-function Step({
-  number,
-  title,
-  description,
-}: {
-  number: string;
-  title: string;
-  description: string;
-}) {
-  return (
-    <div className="flex gap-4">
-      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#2563EB] text-xs font-extrabold text-[#FFFFFF]">
-        {number}
-      </div>
-
-      <div>
-        <h3 className="text-base font-extrabold text-[#111827]">
-          {title}
-        </h3>
-
-        <p className="mt-1 text-sm leading-6 text-[#111827]/60">
-          {description}
-        </p>
-      </div>
-    </div>
-  );
-}
-
-/* =========================================================
-   FAQS
-   ========================================================= */
-
-function getFaqs(scheme: Scheme): Faq[] {
-  return [
-    {
-      question: `What is ${scheme.name}?`,
-      answer: scheme.description,
-    },
-    {
-      question: `Who can benefit from ${scheme.name}?`,
-      answer: scheme.eligibilitySummary,
-    },
-    {
-      question: "What documents may be required?",
-      answer:
-        scheme.documents.length > 0
-          ? `The documents may include: ${scheme.documents.join(
-              ", "
-            )}. Requirements can vary, so verify the current list through the official source.`
-          : "Document requirements should be verified through the official scheme source.",
-    },
-    {
-      question: "How can I apply?",
-      answer:
-        "Application procedures depend on the scheme and the responsible government department. Use the official source linked on this page to check the current application process.",
-    },
-    {
-      question:
-        "Is the information on SchemeSamjho official?",
-      answer:
-        "No. SchemeSamjho is an informational platform. The official government website or department remains the authoritative source for eligibility, benefits, documents and application decisions.",
-    },
-  ];
 }

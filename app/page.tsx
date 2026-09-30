@@ -6,7 +6,14 @@ import HowItWorks from "../Components/Home/HowItWorks";
 import HomeCTA from "../Components/Home/HomeCTA";
 import Disclaimer from "../Components/Home/Disclaimer";
 
-export default function Home() {
+import { getAllSchemes } from "../lib/schemes";
+
+export const dynamic = "force-dynamic";
+
+export default async function Home() {
+  // Load only published schemes from Supabase
+  const schemes = await getAllSchemes();
+
   return (
     <>
       {/* Hero */}
@@ -19,7 +26,7 @@ export default function Home() {
       <Categories />
 
       {/* Featured schemes */}
-      <FeaturedSchemes />
+      <FeaturedSchemes schemes={schemes} />
 
       {/* How it works */}
       <HowItWorks />

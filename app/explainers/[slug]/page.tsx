@@ -3,466 +3,431 @@ import { notFound } from "next/navigation";
 import {
   ArrowLeft,
   ArrowRight,
-  BookOpen,
   CheckCircle2,
   ExternalLink,
   FileText,
   Info,
   ShieldCheck,
+  Users,
 } from "lucide-react";
 
+import FavoriteButton from "../../../Components/FavoriteButton";
 import {
-  explainers,
-  getExplainer,
-} from "../../../data/explainers";
+  getAllSchemes,
+  getSchemeBySlug,
+} from "../../../lib/schemes";
 
-export function generateStaticParams() {
-  return explainers.map((explainer) => ({
-    slug: explainer.slug,
+type SchemeDetailPageProps = {
+  params: Promise<{
+    slug: string;
+  }>;
+};
+
+export async function generateStaticParams() {
+  const schemes = await getAllSchemes();
+
+  return schemes.map((scheme) => ({
+    slug: scheme.slug,
   }));
 }
 
 export async function generateMetadata({
   params,
-}: {
-  params: Promise<{ slug: string }>;
-}) {
+}: SchemeDetailPageProps) {
   const { slug } = await params;
+  const scheme = await getSchemeBySlug(slug);
 
-  const explainer = getExplainer(slug);
-
-  if (!explainer) {
+  if (!scheme) {
     return {
-      title: "Explainer Not Found",
+      title: "Scheme Not Found",
     };
   }
 
   return {
-    title: explainer.title,
-    description: explainer.summary,
+    title: scheme.name,
+    description: scheme.shortDescription,
+    alternates: {
+      canonical: `/schemes/${scheme.slug}`,
+    },
   };
 }
 
-export default async function ExplainerDetailPage({
+export default async function SchemeDetailPage({
   params,
-}: {
-  params: Promise<{ slug: string }>;
-}) {
+}: SchemeDetailPageProps) {
   const { slug } = await params;
 
-  const explainer = getExplainer(slug);
+  const scheme = await getSchemeBySlug(slug);
 
-  if (!explainer) {
+  if (!scheme) {
     notFound();
   }
 
-  const officialUrl =
-    explainer.schemeSlug === "pm-kisan"
-      ? "https://pmkisan.gov.in/"
-      : explainer.schemeSlug === "pm-vishwakarma"
-        ? "https://pmvishwakarma.gov.in/"
-        : "https://pmjay.gov.in/";
+  const allSchemes = await getAllSchemes();
+
+  const relatedSchemes = allSchemes
+    .filter(
+      (item) =>
+        item.slug !== scheme.slug &&
+        item.category === scheme.category
+    )
+    .slice(0, 3);
 
   return (
-    <main className="min-h-screen bg-[#FFFFFF]">
-
-      {/* Hero */}
-      <section className="bg-[#111827]">
-
+    <div className="min-h-screen bg-white text-[#111827]">
+      {/* HERO */}
+      <section className="border-b border-gray-200 bg-white">
         <div className="mx-auto max-w-7xl px-6 py-12 sm:px-8 lg:px-10 lg:py-16">
-
           <Link
-            href="/explainers"
-            className="inline-flex items-center gap-2 text-sm font-semibold text-[#FFFFFF]/70 transition hover:text-[#FFFFFF]"
+            href="/schemes"
+            className="inline-flex items-center gap-2 text-sm font-bold text-[#2563EB] hover:underline"
           >
-            <ArrowLeft size={16} />
-            Back to Explainers
+            <ArrowLeft className="h-4 w-4" />
+            Back to schemes
           </Link>
 
           <div className="mt-8 max-w-4xl">
+            <div className="flex flex-wrap items-center gap-3">
+              <span className="rounded-full bg-blue-50 px-3 py-1.5 text-xs font-bold text-[#2563EB]">
+                {scheme.category}
+              </span>
 
-            <div className="inline-flex items-center gap-2 rounded-full border border-[#FFFFFF]/20 px-4 py-2 text-sm font-semibold text-[#FFFFFF]">
-              <BookOpen size={16} />
-              {explainer.category}
+              <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-gray-500">
+                <ShieldCheck className="h-4 w-4 text-[#16A34A]" />
+                Last verified: {scheme.lastVerified}
+              </span>
             </div>
 
-            <h1 className="mt-6 text-4xl font-extrabold leading-[1.08] tracking-tight text-[#FFFFFF] sm:text-5xl lg:text-6xl">
-              {explainer.title}
-            </h1>
+            <div className="mt-5 flex flex-col gap-5 sm:flex-row sm:items-start sm:justify-between">
+              <div>
+                <h1 className="text-4xl font-black leading-tight tracking-tight text-[#111827] sm:text-5xl lg:text-6xl">
+                  {scheme.name}
+                </h1>
 
-            <p className="mt-6 max-w-3xl text-base leading-7 text-[#FFFFFF]/75 sm:text-lg">
-              {explainer.summary}
-            </p>
-
-          </div>
-
-        </div>
-
-      </section>
-
-      {/* Content */}
-      <section>
-
-        <div className="mx-auto grid max-w-7xl gap-10 px-6 py-12 sm:px-8 lg:grid-cols-[minmax(0,1fr)_300px] lg:px-10 lg:py-16">
-
-          <article className="min-w-0">
-
-            {/* What */}
-            <section>
-              <SectionTitle
-                icon={<Info size={20} />}
-                title="What is it?"
-              />
-
-              <p className="mt-4 text-base leading-8 text-[#111827]/70">
-                {explainer.whatIsIt}
-              </p>
-            </section>
-
-            {/* Why */}
-            <section className="mt-12">
-
-              <SectionTitle
-                icon={<BookOpen size={20} />}
-                title="Why does it exist?"
-              />
-
-              <p className="mt-4 text-base leading-8 text-[#111827]/70">
-                {explainer.why}
-              </p>
-
-            </section>
-
-            {/* Who */}
-            <section className="mt-12">
-
-              <SectionTitle
-                icon={<CheckCircle2 size={20} />}
-                title="Who is it for?"
-              />
-
-              <p className="mt-4 text-base leading-8 text-[#111827]/70">
-                {explainer.who}
-              </p>
-
-            </section>
-
-            {/* Benefits */}
-            <section className="mt-12">
-
-              <SectionTitle
-                icon={<CheckCircle2 size={20} />}
-                title="Benefits"
-              />
-
-              <div className="mt-5 space-y-3">
-
-                {explainer.benefits.map(
-                  (benefit) => (
-                    <div
-                      key={benefit}
-                      className="flex items-start gap-3 rounded-xl border border-[#111827]/10 p-4"
-                    >
-
-                      <CheckCircle2
-                        size={19}
-                        className="mt-0.5 shrink-0 text-[#16A34A]"
-                      />
-
-                      <p className="text-sm leading-6 text-[#111827]/75">
-                        {benefit}
-                      </p>
-
-                    </div>
-                  )
-                )}
-
-              </div>
-
-            </section>
-
-            {/* Eligibility */}
-            <section className="mt-12">
-
-              <SectionTitle
-                icon={<ShieldCheck size={20} />}
-                title="Eligibility"
-              />
-
-              <div className="mt-5 space-y-3">
-
-                {explainer.eligibility.map(
-                  (item) => (
-                    <div
-                      key={item}
-                      className="flex items-start gap-3"
-                    >
-
-                      <CheckCircle2
-                        size={18}
-                        className="mt-0.5 shrink-0 text-[#16A34A]"
-                      />
-
-                      <p className="text-sm leading-6 text-[#111827]/75">
-                        {item}
-                      </p>
-
-                    </div>
-                  )
-                )}
-
-              </div>
-
-              <div className="mt-6 rounded-xl border border-[#2563EB]/20 bg-[#2563EB]/10 p-5">
-
-                <p className="text-sm leading-6 text-[#111827]/75">
-                  This explanation is for general understanding.
-                  Final eligibility is determined under the applicable
-                  government rules and verification process.
+                <p className="mt-5 max-w-3xl text-base leading-7 text-gray-600 sm:text-lg">
+                  {scheme.shortDescription}
                 </p>
-
               </div>
 
-            </section>
+              <FavoriteButton slug={scheme.slug} />
+            </div>
 
-            {/* Documents */}
-            <section className="mt-12">
-
-              <SectionTitle
-                icon={<FileText size={20} />}
-                title="Documents you may need"
-              />
-
-              <div className="mt-5 grid gap-3 sm:grid-cols-2">
-
-                {explainer.documents.map(
-                  (document) => (
-                    <div
-                      key={document}
-                      className="rounded-xl border border-[#111827]/10 p-4"
-                    >
-
-                      <p className="text-sm font-semibold leading-6 text-[#111827]/75">
-                        {document}
-                      </p>
-
-                    </div>
-                  )
-                )}
-
-              </div>
-
-            </section>
-
-            {/* How it works */}
-            <section className="mt-12">
-
-              <SectionTitle
-                icon={<ArrowRight size={20} />}
-                title="How does it work?"
-              />
-
-              <div className="mt-6 space-y-4">
-
-                {explainer.howItWorks.map(
-                  (step, index) => (
-                    <div
-                      key={step}
-                      className="flex items-start gap-4"
-                    >
-
-                      <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#2563EB] text-sm font-bold text-[#FFFFFF]">
-                        {index + 1}
-                      </div>
-
-                      <p className="pt-1 text-sm leading-7 text-[#111827]/75">
-                        {step}
-                      </p>
-
-                    </div>
-                  )
-                )}
-
-              </div>
-
-            </section>
-
-            {/* Application */}
-            <section className="mt-12">
-
-              <SectionTitle
-                icon={<FileText size={20} />}
-                title="How to apply"
-              />
-
-              <p className="mt-4 text-base leading-8 text-[#111827]/70">
-                {explainer.howToApply}
-              </p>
+            <div className="mt-7 flex flex-col gap-3 sm:flex-row">
+              <Link
+                href={`/explainers/${scheme.slug}`}
+                className="inline-flex h-11 items-center justify-center gap-2 rounded-xl bg-[#2563EB] px-5 text-sm font-bold text-white transition hover:bg-[#1d4ed8]"
+              >
+                Understand This Scheme
+                <ArrowRight className="h-4 w-4" />
+              </Link>
 
               <a
-                href={officialUrl}
+                href={scheme.officialUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="mt-6 inline-flex items-center gap-2 rounded-xl bg-[#2563EB] px-5 py-3 text-sm font-bold text-[#FFFFFF] transition hover:bg-[#111827]"
+                className="inline-flex h-11 items-center justify-center gap-2 rounded-xl border border-gray-300 bg-white px-5 text-sm font-bold text-[#111827] transition hover:border-[#2563EB] hover:text-[#2563EB]"
               >
-                Visit Official Website
-                <ExternalLink size={16} />
+                Official Website
+                <ExternalLink className="h-4 w-4" />
               </a>
-
-            </section>
-
-            {/* FAQs */}
-            <section className="mt-12">
-
-              <SectionTitle
-                icon={<Info size={20} />}
-                title="Frequently asked questions"
-              />
-
-              <div className="mt-5 space-y-4">
-
-                {explainer.faqs.map(
-                  (faq) => (
-                    <div
-                      key={faq.question}
-                      className="rounded-xl border border-[#111827]/10 p-5"
-                    >
-
-                      <h3 className="text-base font-extrabold text-[#111827]">
-                        {faq.question}
-                      </h3>
-
-                      <p className="mt-2 text-sm leading-6 text-[#111827]/65">
-                        {faq.answer}
-                      </p>
-
-                    </div>
-                  )
-                )}
-
-              </div>
-
-            </section>
-
-            {/* Disclaimer */}
-            <section className="mt-12 rounded-2xl bg-[#111827] p-6 sm:p-8">
-
-              <h2 className="text-xl font-extrabold text-[#FFFFFF]">
-                Important
-              </h2>
-
-              <p className="mt-3 text-sm leading-6 text-[#FFFFFF]/70">
-                SchemeSamjho is an information platform and is
-                not a government department or official government
-                portal. Scheme rules, eligibility conditions,
-                documents and application processes can change.
-                Always verify the latest information through the
-                official source before applying.
-              </p>
-
-            </section>
-
-          </article>
-
-          {/* Sidebar */}
-          <aside className="lg:sticky lg:top-28 lg:self-start">
-
-            <div className="rounded-2xl border border-[#111827]/10 bg-[#FFFFFF] p-5">
-
-              <p className="text-xs font-bold uppercase tracking-wide text-[#2563EB]">
-                On this page
-              </p>
-
-              <nav className="mt-4 space-y-1">
-
-                {[
-                  "What is it?",
-                  "Why does it exist?",
-                  "Who is it for?",
-                  "Benefits",
-                  "Eligibility",
-                  "Documents",
-                  "How does it work?",
-                  "How to apply",
-                  "FAQs",
-                ].map((item) => (
-                  <div
-                    key={item}
-                    className="rounded-lg px-3 py-2 text-sm font-semibold text-[#111827]/65"
-                  >
-                    {item}
-                  </div>
-                ))}
-
-              </nav>
-
-              <div className="mt-5 border-t border-[#111827]/10 pt-5">
-
-                <p className="text-xs font-bold uppercase tracking-wide text-[#16A34A]">
-                  Official source
-                </p>
-
-                <a
-                  href={officialUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="mt-3 flex items-center gap-2 text-sm font-bold text-[#2563EB] transition hover:text-[#111827]"
-                >
-                  Official Website
-                  <ExternalLink size={15} />
-                </a>
-
-              </div>
-
             </div>
-
-            <Link
-              href="/eligibility"
-              className="mt-5 flex items-center justify-between rounded-2xl bg-[#2563EB] p-5 text-[#FFFFFF] transition hover:bg-[#111827]"
-            >
-
-              <div>
-                <p className="text-sm font-extrabold">
-                  Check your eligibility
-                </p>
-
-                <p className="mt-1 text-xs leading-5 text-[#FFFFFF]/75">
-                  Explore schemes using your basic information.
-                </p>
-              </div>
-
-              <ArrowRight size={19} />
-
-            </Link>
-
-          </aside>
-
+          </div>
         </div>
-
       </section>
 
-    </main>
-  );
-}
+      {/* MAIN CONTENT */}
+      <section className="bg-gray-50 py-12 sm:py-16">
+        <div className="mx-auto grid max-w-7xl gap-8 px-6 sm:px-8 lg:grid-cols-[1fr_340px] lg:px-10">
+          <main className="space-y-8">
+            {/* ABOUT */}
+            <section className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm sm:p-8">
+              <div className="flex items-start gap-4">
+                <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-blue-50">
+                  <Info className="h-5 w-5 text-[#2563EB]" />
+                </div>
 
-function SectionTitle({
-  icon,
-  title,
-}: {
-  icon: React.ReactNode;
-  title: string;
-}) {
-  return (
-    <div className="flex items-center gap-3">
+                <div>
+                  <h2 className="text-2xl font-black text-[#111827]">
+                    About this scheme
+                  </h2>
 
-      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#2563EB]/10 text-[#2563EB]">
-        {icon}
-      </div>
+                  <p className="mt-4 whitespace-pre-line text-sm leading-7 text-gray-600 sm:text-base">
+                    {scheme.description}
+                  </p>
+                </div>
+              </div>
+            </section>
 
-      <h2 className="text-2xl font-extrabold tracking-tight text-[#111827] sm:text-3xl">
-        {title}
-      </h2>
+            {/* BENEFITS */}
+            <section className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm sm:p-8">
+              <h2 className="text-2xl font-black text-[#111827]">
+                Benefits
+              </h2>
 
+              <div className="mt-6 grid gap-4 sm:grid-cols-2">
+                {scheme.benefits.map((benefit) => (
+                  <div
+                    key={benefit}
+                    className="flex gap-3 rounded-xl border border-gray-200 p-4"
+                  >
+                    <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0 text-[#16A34A]" />
+
+                    <p className="text-sm leading-6 text-gray-700">
+                      {benefit}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            </section>
+
+            {/* ELIGIBILITY */}
+            <section className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm sm:p-8">
+              <div className="flex items-start gap-4">
+                <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-green-50">
+                  <Users className="h-5 w-5 text-[#16A34A]" />
+                </div>
+
+                <div className="flex-1">
+                  <h2 className="text-2xl font-black text-[#111827]">
+                    Eligibility
+                  </h2>
+
+                  <p className="mt-4 text-sm leading-7 text-gray-600 sm:text-base">
+                    {scheme.eligibilitySummary}
+                  </p>
+
+                  {(scheme.minAge != null ||
+                    scheme.maxAge != null) && (
+                    <div className="mt-6 rounded-xl bg-gray-50 p-5">
+                      <h3 className="text-sm font-bold text-[#111827]">
+                        Age requirement
+                      </h3>
+
+                      <p className="mt-2 text-sm text-gray-600">
+                        {scheme.minAge != null &&
+                        scheme.maxAge != null
+                          ? `${scheme.minAge} to ${scheme.maxAge} years`
+                          : scheme.minAge != null
+                          ? `${scheme.minAge} years or above`
+                          : `Up to ${scheme.maxAge} years`}
+                      </p>
+                    </div>
+                  )}
+
+                  {scheme.maxIncome != null && (
+                    <div className="mt-4 rounded-xl bg-gray-50 p-5">
+                      <h3 className="text-sm font-bold text-[#111827]">
+                        Income requirement
+                      </h3>
+
+                      <p className="mt-2 text-sm text-gray-600">
+                        Maximum listed annual income:{" "}
+                        <span className="font-bold text-[#111827]">
+                          ₹
+                          {scheme.maxIncome.toLocaleString(
+                            "en-IN"
+                          )}
+                        </span>
+                      </p>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </section>
+
+            {/* OCCUPATIONS */}
+            {scheme.occupations.length > 0 && (
+              <section className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm sm:p-8">
+                <h2 className="text-2xl font-black text-[#111827]">
+                  Relevant occupations
+                </h2>
+
+                <div className="mt-5 flex flex-wrap gap-2">
+                  {scheme.occupations.map((occupation) => (
+                    <span
+                      key={occupation}
+                      className="rounded-full border border-gray-200 bg-gray-50 px-4 py-2 text-sm font-semibold text-gray-700"
+                    >
+                      {occupation}
+                    </span>
+                  ))}
+                </div>
+              </section>
+            )}
+
+            {/* DOCUMENTS */}
+            <section className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm sm:p-8">
+              <div className="flex items-start gap-4">
+                <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-blue-50">
+                  <FileText className="h-5 w-5 text-[#2563EB]" />
+                </div>
+
+                <div className="flex-1">
+                  <h2 className="text-2xl font-black text-[#111827]">
+                    Documents you may need
+                  </h2>
+
+                  <ul className="mt-6 space-y-3">
+                    {scheme.documents.map((document) => (
+                      <li
+                        key={document}
+                        className="flex gap-3 text-sm leading-6 text-gray-700"
+                      >
+                        <CheckCircle2 className="mt-1 h-4 w-4 shrink-0 text-[#16A34A]" />
+                        {document}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              </div>
+            </section>
+
+            {/* EXCLUSIONS */}
+            {scheme.exclusions.length > 0 && (
+              <section className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm sm:p-8">
+                <h2 className="text-2xl font-black text-[#111827]">
+                  Important exclusions
+                </h2>
+
+                <ul className="mt-6 space-y-3">
+                  {scheme.exclusions.map((exclusion) => (
+                    <li
+                      key={exclusion}
+                      className="flex gap-3 text-sm leading-6 text-gray-700"
+                    >
+                      <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-gray-500" />
+                      {exclusion}
+                    </li>
+                  ))}
+                </ul>
+              </section>
+            )}
+
+            {/* CTA */}
+            <section className="rounded-2xl border border-blue-200 bg-blue-50 p-6 sm:p-8">
+              <h2 className="text-2xl font-black text-[#111827]">
+                Not sure if you qualify?
+              </h2>
+
+              <p className="mt-3 max-w-2xl text-sm leading-6 text-gray-600 sm:text-base">
+                Use the SchemeSamjho eligibility checker for a
+                preliminary comparison based on your basic
+                details.
+              </p>
+
+              <Link
+                href="/eligibility"
+                className="mt-6 inline-flex h-11 items-center gap-2 rounded-xl bg-[#2563EB] px-5 text-sm font-bold text-white transition hover:bg-[#1d4ed8]"
+              >
+                Check My Eligibility
+                <ArrowRight className="h-4 w-4" />
+              </Link>
+            </section>
+          </main>
+
+          {/* SIDEBAR */}
+          <aside className="space-y-6">
+            <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
+              <h2 className="text-lg font-black text-[#111827]">
+                Quick information
+              </h2>
+
+              <div className="mt-5 space-y-4">
+                <div>
+                  <p className="text-xs font-bold uppercase tracking-wide text-gray-500">
+                    Category
+                  </p>
+
+                  <p className="mt-1 text-sm font-semibold text-[#111827]">
+                    {scheme.category}
+                  </p>
+                </div>
+
+                <div>
+                  <p className="text-xs font-bold uppercase tracking-wide text-gray-500">
+                    Last verified
+                  </p>
+
+                  <p className="mt-1 text-sm font-semibold text-[#111827]">
+                    {scheme.lastVerified}
+                  </p>
+                </div>
+
+                {scheme.maxIncome != null && (
+                  <div>
+                    <p className="text-xs font-bold uppercase tracking-wide text-gray-500">
+                      Income limit
+                    </p>
+
+                    <p className="mt-1 text-sm font-semibold text-[#111827]">
+                      ₹
+                      {scheme.maxIncome.toLocaleString(
+                        "en-IN"
+                      )}
+                    </p>
+                  </div>
+                )}
+              </div>
+
+              <a
+                href={scheme.officialUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="mt-6 flex h-11 items-center justify-center gap-2 rounded-xl border border-gray-300 text-sm font-bold text-[#111827] transition hover:border-[#2563EB] hover:text-[#2563EB]"
+              >
+                Visit Official Source
+                <ExternalLink className="h-4 w-4" />
+              </a>
+            </div>
+
+            {/* RELATED */}
+            {relatedSchemes.length > 0 && (
+              <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
+                <h2 className="text-lg font-black text-[#111827]">
+                  Related schemes
+                </h2>
+
+                <div className="mt-5 space-y-4">
+                  {relatedSchemes.map((related) => (
+                    <Link
+                      key={related.slug}
+                      href={`/schemes/${related.slug}`}
+                      className="group block rounded-xl border border-gray-200 p-4 transition hover:border-blue-200"
+                    >
+                      <p className="text-sm font-bold leading-5 text-[#111827] group-hover:text-[#2563EB]">
+                        {related.name}
+                      </p>
+
+                      <p className="mt-2 line-clamp-2 text-xs leading-5 text-gray-500">
+                        {related.shortDescription}
+                      </p>
+
+                      <span className="mt-3 inline-flex items-center gap-1 text-xs font-bold text-[#2563EB]">
+                        View scheme
+                        <ArrowRight className="h-3.5 w-3.5" />
+                      </span>
+                    </Link>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* DISCLAIMER */}
+            <div className="rounded-2xl border border-gray-200 bg-gray-50 p-6">
+              <p className="text-xs font-bold uppercase tracking-wide text-[#2563EB]">
+                Important
+              </p>
+
+              <p className="mt-3 text-sm leading-6 text-gray-600">
+                SchemeSamjho is an independent information
+                platform. Always verify the latest eligibility,
+                documents and application requirements on the
+                official government source.
+              </p>
+            </div>
+          </aside>
+        </div>
+      </section>
     </div>
   );
 }

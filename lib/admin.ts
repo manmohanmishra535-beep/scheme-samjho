@@ -9,6 +9,20 @@ const adminUserIds =
 export async function isAdmin(): Promise<boolean> {
   const { userId } = await auth();
 
+  console.log("===== ADMIN DEBUG =====");
+  console.log("Clerk userId:", userId);
+  console.log(
+    "ADMIN_USER_IDS configured:",
+    adminUserIds.length > 0
+  );
+  console.log(
+    "Is admin:",
+    userId
+      ? adminUserIds.includes(userId)
+      : false
+  );
+  console.log("======================");
+
   if (!userId) {
     return false;
   }
@@ -18,6 +32,20 @@ export async function isAdmin(): Promise<boolean> {
 
 export async function requireAdmin(): Promise<string> {
   const { userId } = await auth();
+
+  console.log("===== REQUIRE ADMIN DEBUG =====");
+  console.log("Clerk userId:", userId);
+  console.log(
+    "ADMIN_USER_IDS configured:",
+    adminUserIds.length > 0
+  );
+  console.log(
+    "Is admin:",
+    userId
+      ? adminUserIds.includes(userId)
+      : false
+  );
+  console.log("==============================");
 
   if (!userId) {
     throw new Error("UNAUTHORIZED");
