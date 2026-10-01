@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useMemo, useState } from "react";
 import {
   ArrowRight,
-  BookOpen,nex
+  BookOpen,
   CheckCircle2,
   Search,
   ShieldCheck,
